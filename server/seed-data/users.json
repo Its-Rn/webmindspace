@@ -1,0 +1,34 @@
+[
+  {
+    "name": "Kunal",
+    "email": "kunal@gmail.com",
+    "role": "admin",
+    "isEmailVerified": true,
+    "emailVerifiedAt": "2026-07-01T00:00:00.000Z",
+    "title": "Platform Admin",
+    "bio": "Building the future of productivity.",
+    "location": "Mumbai, India",
+    "skills": ["React", "Node.js", "MongoDB", "Productivity"],
+    "stats": { "tasksCompleted": 42, "blogsPublished": 8, "notesCreated": 15, "timelinePosts": 23, "messagesSent": 156 },
+    "dailyStreak": 12,
+    "bestStreak": 30,
+    "createdAt": "2026-06-15T00:00:00.000Z",
+    "updatedAt": "2026-07-05T00:00:00.000Z"
+  },
+  {
+    "name": "Aryan",
+    "email": "aryan@gmail.com",
+    "role": "user",
+    "isEmailVerified": true,
+    "emailVerifiedAt": "2026-07-01T00:00:00.000Z",
+    "title": "Software Developer",
+    "bio": "Building awesome things.",
+    "location": "Mumbai, India",
+    "skills": ["JavaScript", "React", "Node.js", "MongoDB"],
+    "stats": { "tasksCompleted": 27, "blogsPublished": 12, "notesCreated": 34, "timelinePosts": 45, "messagesSent": 203 },
+    "dailyStreak": 8,
+    "bestStreak": 21,
+    "createdAt": "2026-06-25T00:00:00.000Z",
+    "updatedAt": "2026-07-05T00:00:00.000Z"
+  }
+]

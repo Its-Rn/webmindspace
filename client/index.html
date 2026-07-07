@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Pulse is a premium personal productivity platform for tasks, notes, blogs, chat, and daily planning."
+    />
+    <meta name="theme-color" content="#0f172a" />
+    <title>Pulse | Personal Productivity Platform</title>
+    <script>
+      (() => {
+        try {
+          const savedTheme = localStorage.getItem('pulse-theme');
+          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          const theme = savedTheme === 'light' || savedTheme === 'dark' ? savedTheme : prefersDark ? 'dark' : 'light';
+          document.documentElement.dataset.theme = theme;
+          document.documentElement.style.colorScheme = theme;
+        } catch (error) {
+          document.documentElement.dataset.theme = 'dark';
+          document.documentElement.style.colorScheme = 'dark';
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
+

@@ -1,0 +1,16 @@
+node_modules
+dist
+coverage
+*.log
+.env
+.env.*
+!.env.example
+client/dist
+server/dist
+server/logs/*
+!server/logs/.gitkeep
+server/uploads/*
+!server/uploads/.gitkeep
+.DS_Store
+Thumbs.db
+

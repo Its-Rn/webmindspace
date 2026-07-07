@@ -1,0 +1,12 @@
+[
+  {
+    "participants": ["REPLACE_WITH_ALICE_OBJECT_ID", "REPLACE_WITH_BOB_OBJECT_ID"],
+    "lastMessage": {
+      "content": "Sounds good! Let me know when it's ready.",
+      "sender": "REPLACE_WITH_ALICE_OBJECT_ID",
+      "sentAt": "2026-07-05T10:30:00.000Z"
+    },
+    "createdAt": "2026-06-25T00:00:00.000Z",
+    "updatedAt": "2026-07-05T10:30:00.000Z"
+  }
+]

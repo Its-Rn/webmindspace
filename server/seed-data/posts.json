@@ -1,0 +1,44 @@
+[
+  {
+    "title": "Getting Started with React 19",
+    "slug": "getting-started-react-19",
+    "content": "<h2>What's New in React 19</h2><p>React 19 introduces several groundbreaking features that change how we build user interfaces. The new compiler, improved concurrent features, and simplified hooks make development more enjoyable than ever.</p><h3>Key Features</h3><ul><li><strong>React Compiler:</strong> Automatic memoization without hooks</li><li><strong>Server Components:</strong> Built-in support for server-side rendering</li><li><strong>Actions:</strong> Simplified form handling</li></ul><p>Start migrating your projects today to take advantage of these improvements.</p>",
+    "excerpt": "A comprehensive guide to React 19's new features including the compiler, server components, and actions.",
+    "status": "published",
+    "author": "REPLACE_WITH_ALICE_OBJECT_ID",
+    "tags": ["react", "javascript", "frontend"],
+    "categories": ["Development"],
+    "publishedAt": "2026-06-28T00:00:00.000Z",
+    "seo": { "title": "Getting Started with React 19 - Guide", "description": "Learn about React 19 features including the new compiler and server components." },
+    "createdAt": "2026-06-25T00:00:00.000Z",
+    "updatedAt": "2026-06-28T00:00:00.000Z"
+  },
+  {
+    "title": "Building a CLI Tool with Node.js",
+    "slug": "building-cli-nodejs",
+    "content": "<p>Command-line interfaces are powerful tools for developers. In this guide, we'll build a CLI tool from scratch using Node.js and popular libraries like Commander and Inquirer.</p><pre><code>import { Command } from 'commander'; const program = new Command(); program.version('1.0.0').parse();</code></pre><p>Learn how to create interactive prompts, handle arguments, and publish your CLI to npm.</p>",
+    "excerpt": "Step-by-step tutorial on creating a command-line interface tool with Node.js, Commander, and Inquirer.",
+    "status": "published",
+    "author": "REPLACE_WITH_BOB_OBJECT_ID",
+    "tags": ["nodejs", "cli", "javascript"],
+    "categories": ["Development", "Tutorial"],
+    "publishedAt": "2026-07-02T00:00:00.000Z",
+    "seo": { "title": "Building CLI Tools with Node.js", "description": "Create command-line interfaces with Node.js and Commander." },
+    "createdAt": "2026-06-30T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z"
+  },
+  {
+    "title": "Productivity Tips for Remote Workers",
+    "slug": "productivity-remote-work",
+    "content": "<p>Working remotely comes with unique challenges. Here are the strategies that have helped me stay productive while working from home.</p><h3>1. Create a Morning Routine</h3><p>Start your day consistently. Wake up at the same time, exercise, and plan your day before diving into work.</p><h3>2. Use Time Blocking</h3><p>Block out specific times for deep work, meetings, and breaks. This helps maintain focus and prevents burnout.</p><h3>3. Set Physical Boundaries</h3><p>Having a dedicated workspace helps separate work life from personal life, even in small apartments.</p>",
+    "excerpt": "Practical strategies for staying productive while working from home, including routines, time blocking, and workspace setup.",
+    "status": "draft",
+    "author": "REPLACE_WITH_CAROL_OBJECT_ID",
+    "tags": ["productivity", "remote-work", "tips"],
+    "categories": ["Lifestyle"],
+    "publishedAt": null,
+    "seo": { "title": "Productivity Tips for Remote Workers", "description": "Stay productive working from home with these practical tips." },
+    "createdAt": "2026-07-03T00:00:00.000Z",
+    "updatedAt": "2026-07-03T00:00:00.000Z"
+  }
+]
