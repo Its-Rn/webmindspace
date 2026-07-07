@@ -1,7 +1,0 @@
-[
-  { "conversation": "REPLACE_WITH_CONVERSATION_OBJECT_ID", "sender": "REPLACE_WITH_BOB_OBJECT_ID", "content": "Hey Alice! Have you seen the new dashboard metrics?", "readBy": [], "createdAt": "2026-07-05T10:00:00.000Z", "updatedAt": "2026-07-05T10:00:00.000Z" },
-  { "conversation": "REPLACE_WITH_CONVERSATION_OBJECT_ID", "sender": "REPLACE_WITH_ALICE_OBJECT_ID", "content": "Yes! The user engagement charts are looking great. Up 23% this week.", "readBy": ["REPLACE_WITH_BOB_OBJECT_ID"], "createdAt": "2026-07-05T10:05:00.000Z", "updatedAt": "2026-07-05T10:05:00.000Z" },
-  { "conversation": "REPLACE_WITH_CONVERSATION_OBJECT_ID", "sender": "REPLACE_WITH_BOB_OBJECT_ID", "content": "Nice! I think we should add weekly email summaries too.", "readBy": ["REPLACE_WITH_ALICE_OBJECT_ID"], "createdAt": "2026-07-05T10:10:00.000Z", "updatedAt": "2026-07-05T10:10:00.000Z" },
-  { "conversation": "REPLACE_WITH_CONVERSATION_OBJECT_ID", "sender": "REPLACE_WITH_ALICE_OBJECT_ID", "content": "Good idea. Let me create a task for it and we can discuss in standup.", "readBy": ["REPLACE_WITH_BOB_OBJECT_ID"], "createdAt": "2026-07-05T10:20:00.000Z", "updatedAt": "2026-07-05T10:20:00.000Z" },
-  { "conversation": "REPLACE_WITH_CONVERSATION_OBJECT_ID", "sender": "REPLACE_WITH_BOB_OBJECT_ID", "content": "Sounds good! Let me know when it's ready.", "readBy": ["REPLACE_WITH_ALICE_OBJECT_ID"], "createdAt": "2026-07-05T10:30:00.000Z", "updatedAt": "2026-07-05T10:30:00.000Z" }
-]

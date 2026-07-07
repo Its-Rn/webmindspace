@@ -60,6 +60,7 @@ export const PrivateLayout = () => {
     if (!currentUser) return undefined;
 
     const socket = getSocket();
+    if (!socket) return undefined;
 
     const handleNewNotification = (notification) => {
       queryClient.invalidateQueries({ queryKey: ['notifications-unread-count'] });

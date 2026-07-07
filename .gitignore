@@ -13,4 +13,11 @@ server/uploads/*
 !server/uploads/.gitkeep
 .DS_Store
 Thumbs.db
+server/data/
+outputs/
+.cursor/
+.vscode/
+.mongodb/
+work/
+*.bat
 

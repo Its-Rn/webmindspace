@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { motion } from 'framer-motion';
 import { FiArrowRight, FiLock, FiMail } from 'react-icons/fi';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useRef } from 'react';
 
 import { authService } from '../services/auth';
 import { useToast } from '../context/ToastContext';
@@ -12,6 +13,7 @@ export const LoginPage = () => {
   const location = useLocation();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const submitting = useRef(false);
 
   const {
     register,
@@ -30,11 +32,22 @@ export const LoginPage = () => {
       navigate(nextPath, { replace: true });
     },
     onError: (error) => {
-      toast.error(error?.response?.data?.message || 'Invalid email or password.');
+      if (!error?.response) {
+        toast.error('Unable to connect to server. Please try again.');
+      } else {
+        toast.error(error?.response?.data?.message || 'Invalid email or password.');
+      }
+    },
+    onSettled: () => {
+      submitting.current = false;
     }
   });
 
-  const onSubmit = (formValues) => loginMutation.mutate(formValues);
+  const onSubmit = async (formValues) => {
+    if (submitting.current) return;
+    submitting.current = true;
+    loginMutation.mutate(formValues);
+  };
 
   return (
     <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-12">
@@ -141,14 +154,7 @@ export const LoginPage = () => {
             </Link>
           </p>
 
-          {/* Demo credentials */}
-          <div className="mt-6 rounded-2xl border border-cyan-500/20 bg-cyan-500/5 px-4 py-3">
-            <p className="text-xs font-semibold uppercase tracking-wider text-cyan-600 dark:text-cyan-400">Demo accounts</p>
-            <div className="mt-2 space-y-1 text-xs text-slate-500 dark:text-slate-400">
-              <p><strong>Admin:</strong> kunal@gmail.com / 2212Aryan@3</p>
-              <p><strong>User:</strong> aryan@gmail.com / 0902@Aryan3</p>
-            </div>
-          </div>
+
         </div>
       </motion.div>
     </div>

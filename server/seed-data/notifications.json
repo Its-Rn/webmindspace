@@ -1,8 +1,0 @@
-[
-  { "recipient": "REPLACE_WITH_ALICE_OBJECT_ID", "type": "system", "title": "Welcome to the platform!", "message": "Your account has been created. Start exploring the features.", "link": "/dashboard", "isRead": false, "createdAt": "2026-06-15T00:00:00.000Z", "updatedAt": "2026-06-15T00:00:00.000Z" },
-  { "recipient": "REPLACE_WITH_BOB_OBJECT_ID", "type": "system", "title": "Welcome to the platform!", "message": "Your account has been created. Start exploring the features.", "link": "/dashboard", "isRead": false, "createdAt": "2026-06-20T00:00:00.000Z", "updatedAt": "2026-06-20T00:00:00.000Z" },
-  { "recipient": "REPLACE_WITH_CAROL_OBJECT_ID", "type": "system", "title": "Welcome to the platform!", "message": "Your account has been created. Start exploring the features.", "link": "/dashboard", "isRead": false, "createdAt": "2026-06-25T00:00:00.000Z", "updatedAt": "2026-06-25T00:00:00.000Z" },
-  { "recipient": "REPLACE_WITH_ALICE_OBJECT_ID", "type": "chat", "title": "New message from Bob Builder", "message": "Sounds good! Let me know when it's ready.", "link": "/chat", "isRead": false, "createdAt": "2026-07-05T10:30:00.000Z", "updatedAt": "2026-07-05T10:30:00.000Z" },
-  { "recipient": "REPLACE_WITH_ALICE_OBJECT_ID", "type": "task_reminder", "title": "Task due tomorrow", "message": "\"Review pull requests\" is due tomorrow.", "link": "/tasks", "isRead": false, "createdAt": "2026-07-05T00:00:00.000Z", "updatedAt": "2026-07-05T00:00:00.000Z" },
-  { "recipient": "REPLACE_WITH_BOB_OBJECT_ID", "type": "chat", "title": "New message from Alice Admin", "message": "Good idea. Let me create a task for it.", "link": "/chat", "isRead": false, "createdAt": "2026-07-05T10:20:00.000Z", "updatedAt": "2026-07-05T10:20:00.000Z" }
-]

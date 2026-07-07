@@ -24,6 +24,7 @@ const NotificationsPage = () => {
 
   useEffect(() => {
     const socket = getSocket();
+    if (!socket) return;
     const handleNewNotification = () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
       queryClient.invalidateQueries({ queryKey: ['notifications-unread-count'] });

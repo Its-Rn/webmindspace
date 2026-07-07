@@ -3,6 +3,7 @@ import { Link, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
 import { userService } from '../services/user';
+import { ErrorBoundary } from './ErrorBoundary';
 
 const LoadingState = () => {
   return (
@@ -68,11 +69,13 @@ export const ProtectedRoute = () => {
   }
 
   return (
-    <Outlet
-      context={{
-        currentUser: currentUserQuery.data?.data?.user || null,
-        profileSummary: currentUserQuery.data?.data?.summary || null
-      }}
-    />
+    <ErrorBoundary>
+      <Outlet
+        context={{
+          currentUser: currentUserQuery.data?.data?.user || null,
+          profileSummary: currentUserQuery.data?.data?.summary || null
+        }}
+      />
+    </ErrorBoundary>
   );
 };

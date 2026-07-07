@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { motion } from 'framer-motion';
 import { FiArrowRight, FiLock, FiMail, FiUser } from 'react-icons/fi';
 import { Link, useNavigate } from 'react-router-dom';
+import { useRef } from 'react';
 
 import { authService } from '../services/auth';
 import { useToast } from '../context/ToastContext';
@@ -10,6 +11,7 @@ import { useToast } from '../context/ToastContext';
 export const RegisterPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const submitting = useRef(false);
 
   const {
     register,
@@ -29,11 +31,22 @@ export const RegisterPage = () => {
       });
     },
     onError: (error) => {
-      toast.error(error?.response?.data?.message || 'Unable to create account.');
+      if (!error?.response) {
+        toast.error('Unable to connect to server. Please try again.');
+      } else {
+        toast.error(error?.response?.data?.message || 'Unable to create account.');
+      }
+    },
+    onSettled: () => {
+      submitting.current = false;
     }
   });
 
-  const onSubmit = (formValues) => registerMutation.mutate(formValues);
+  const onSubmit = async (formValues) => {
+    if (submitting.current) return;
+    submitting.current = true;
+    registerMutation.mutate(formValues);
+  };
 
   return (
     <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-12">
