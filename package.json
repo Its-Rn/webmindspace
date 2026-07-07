@@ -16,7 +16,7 @@
     "setup": "npm install"
   },
   "engines": {
-    "node": ">=22.0.0"
+    "node": "22.x"
   },
   "devDependencies": {
     "concurrently": "^10.0.3"
