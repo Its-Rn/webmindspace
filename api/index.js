@@ -1,5 +1,12 @@
+import { connectDatabase } from '../server/src/config/database.js';
 import { createApp } from '../server/src/app.js';
 
-const app = createApp();
+let app;
 
-export default app;
+export default async (req, res) => {
+  if (!app) {
+    await connectDatabase();
+    app = createApp();
+  }
+  return app(req, res);
+};
