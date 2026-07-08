@@ -12,7 +12,7 @@ export const handler = async (event, context) => {
     const app = createApp();
     cachedHandler = serverless(app, {
       request: (req, event) => {
-        req.url = event.path.replace(/^\/\.netlify\/functions\/api/, '') || '/';
+        req.url = event.path.replace(/^\/\.netlify\/functions\/api/, '/api') || '/';
       }
     });
   }
