@@ -19,7 +19,7 @@
     "node": "22.x"
   },
   "dependencies": {
-    "serverless-http": "^4.1.0"
+    "serverless-http": "^4.0.0"
   },
   "devDependencies": {
     "concurrently": "^10.0.3"
