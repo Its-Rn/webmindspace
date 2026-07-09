@@ -286,8 +286,9 @@ const AdminSettingsPage = () => {
       <form onSubmit={handleSave}>
         <div className="grid gap-6 xl:grid-cols-[1fr_380px]">
 
-          {/* Left: Brand Settings */}
+          {/* Left Column */}
           <motion.div {...fadeUp(0.06)} className="space-y-6">
+            {/* Brand Settings */}
             <div className="surface-card p-6">
               <div className="mb-6 flex items-center gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-500">
@@ -344,6 +345,7 @@ const AdminSettingsPage = () => {
               </div>
             </div>
 
+            {/* Content & Contact */}
             <div className="surface-card p-6">
               <div className="mb-6 flex items-center gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-500/10 text-violet-500">
@@ -384,10 +386,9 @@ const AdminSettingsPage = () => {
                 </FormField>
               </div>
             </div>
-          </motion.div>
 
             {/* Landing Page Content */}
-            <motion.div {...fadeUp(0.08)} className="surface-card p-6">
+            <div className="surface-card p-6">
               <div className="mb-6 flex items-center gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-500">
                   <FiEdit3 />
@@ -398,90 +399,165 @@ const AdminSettingsPage = () => {
                 </div>
               </div>
 
-              <div className="space-y-6">
-                <FormField label="Hero Title" icon={FiType}>
-                  <input className="input-shell" placeholder="Hero heading" value={form.landingPageContent.heroTitle} onChange={(e) => handleLpcChange('heroTitle', e.target.value)} maxLength={200} />
-                </FormField>
-                <FormField label="Hero Subtitle" icon={FiType}>
-                  <input className="input-shell" placeholder="Hero subtitle" value={form.landingPageContent.heroSubtitle} onChange={(e) => handleLpcChange('heroSubtitle', e.target.value)} maxLength={200} />
-                </FormField>
-                <FormField label="Hero Description" icon={FiType}>
-                  <textarea className="input-shell min-h-[80px] resize-y" placeholder="Hero description" value={form.landingPageContent.heroDescription} onChange={(e) => handleLpcChange('heroDescription', e.target.value)} maxLength={500} />
-                </FormField>
+              <div className="space-y-8">
+                {/* Hero */}
+                <div>
+                  <div className="mb-4 flex items-center gap-2">
+                    <div className="h-1 w-8 rounded-full bg-indigo-500/40" />
+                    <p className="text-xs font-semibold uppercase tracking-[0.15em] text-indigo-500">Hero</p>
+                  </div>
+                  <div className="space-y-5">
+                    <FormField label="Title" icon={FiType}>
+                      <input className="input-shell" placeholder="Hero heading" value={form.landingPageContent.heroTitle} onChange={(e) => handleLpcChange('heroTitle', e.target.value)} maxLength={200} />
+                    </FormField>
+                    <FormField label="Subtitle" icon={FiType}>
+                      <input className="input-shell" placeholder="Hero subtitle" value={form.landingPageContent.heroSubtitle} onChange={(e) => handleLpcChange('heroSubtitle', e.target.value)} maxLength={200} />
+                    </FormField>
+                    <FormField label="Description" icon={FiType}>
+                      <textarea className="input-shell min-h-[80px] resize-y" placeholder="Hero description" value={form.landingPageContent.heroDescription} onChange={(e) => handleLpcChange('heroDescription', e.target.value)} maxLength={500} />
+                    </FormField>
+                  </div>
+                </div>
 
                 <div className="border-t border-[rgb(var(--border))]" />
 
-                <FormField label="About Title" icon={FiType}>
-                  <input className="input-shell" placeholder="About section heading" value={form.landingPageContent.aboutTitle} onChange={(e) => handleLpcChange('aboutTitle', e.target.value)} maxLength={200} />
-                </FormField>
-                <FormField label="About Description" icon={FiType}>
-                  <textarea className="input-shell min-h-[80px] resize-y" placeholder="About section body text" value={form.landingPageContent.aboutDescription} onChange={(e) => handleLpcChange('aboutDescription', e.target.value)} maxLength={1000} />
-                </FormField>
+                {/* About */}
+                <div>
+                  <div className="mb-4 flex items-center gap-2">
+                    <div className="h-1 w-8 rounded-full bg-emerald-500/40" />
+                    <p className="text-xs font-semibold uppercase tracking-[0.15em] text-emerald-500">About</p>
+                  </div>
+                  <div className="space-y-5">
+                    <FormField label="Title" icon={FiType}>
+                      <input className="input-shell" placeholder="About section heading" value={form.landingPageContent.aboutTitle} onChange={(e) => handleLpcChange('aboutTitle', e.target.value)} maxLength={200} />
+                    </FormField>
+                    <FormField label="Description" icon={FiType}>
+                      <textarea className="input-shell min-h-[80px] resize-y" placeholder="About section body text" value={form.landingPageContent.aboutDescription} onChange={(e) => handleLpcChange('aboutDescription', e.target.value)} maxLength={1000} />
+                    </FormField>
+                  </div>
+                </div>
 
                 <div className="border-t border-[rgb(var(--border))]" />
 
-                <FormField label="Features Title" icon={FiType}>
-                  <input className="input-shell" placeholder="Features section heading" value={form.landingPageContent.featuresTitle} onChange={(e) => handleLpcChange('featuresTitle', e.target.value)} maxLength={200} />
-                </FormField>
-                <FormField label="Features (JSON array)" description="Array of { title, description } objects." icon={FiLayers}>
-                  <textarea className="input-shell min-h-[180px] resize-y font-mono text-xs" placeholder='[{ "title": "...", "description": "..." }]' value={form.landingPageContent.features} onChange={(e) => handleLpcChange('features', e.target.value)} />
-                </FormField>
+                {/* Features */}
+                <div>
+                  <div className="mb-4 flex items-center gap-2">
+                    <div className="h-1 w-8 rounded-full bg-amber-500/40" />
+                    <p className="text-xs font-semibold uppercase tracking-[0.15em] text-amber-500">Features</p>
+                  </div>
+                  <div className="space-y-5">
+                    <FormField label="Title" icon={FiType}>
+                      <input className="input-shell" placeholder="Features section heading" value={form.landingPageContent.featuresTitle} onChange={(e) => handleLpcChange('featuresTitle', e.target.value)} maxLength={200} />
+                    </FormField>
+                    <FormField label="JSON Data" description="Array of { title, description } objects." icon={FiLayers}>
+                      <textarea className="input-shell min-h-[180px] resize-y font-mono text-xs" placeholder='[{ "title": "...", "description": "..." }]' value={form.landingPageContent.features} onChange={(e) => handleLpcChange('features', e.target.value)} />
+                    </FormField>
+                  </div>
+                </div>
 
                 <div className="border-t border-[rgb(var(--border))]" />
 
-                <FormField label="Testimonials Title" icon={FiType}>
-                  <input className="input-shell" placeholder="Testimonials section heading" value={form.landingPageContent.testimonialsTitle} onChange={(e) => handleLpcChange('testimonialsTitle', e.target.value)} maxLength={200} />
-                </FormField>
-                <FormField label="Testimonials (JSON array)" description="Array of { name, role, quote } objects." icon={FiType}>
-                  <textarea className="input-shell min-h-[180px] resize-y font-mono text-xs" placeholder='[{ "name": "...", "role": "...", "quote": "..." }]' value={form.landingPageContent.testimonials} onChange={(e) => handleLpcChange('testimonials', e.target.value)} />
-                </FormField>
+                {/* Testimonials */}
+                <div>
+                  <div className="mb-4 flex items-center gap-2">
+                    <div className="h-1 w-8 rounded-full bg-rose-500/40" />
+                    <p className="text-xs font-semibold uppercase tracking-[0.15em] text-rose-500">Testimonials</p>
+                  </div>
+                  <div className="space-y-5">
+                    <FormField label="Title" icon={FiType}>
+                      <input className="input-shell" placeholder="Testimonials section heading" value={form.landingPageContent.testimonialsTitle} onChange={(e) => handleLpcChange('testimonialsTitle', e.target.value)} maxLength={200} />
+                    </FormField>
+                    <FormField label="JSON Data" description="Array of { name, role, quote } objects." icon={FiType}>
+                      <textarea className="input-shell min-h-[180px] resize-y font-mono text-xs" placeholder='[{ "name": "...", "role": "...", "quote": "..." }]' value={form.landingPageContent.testimonials} onChange={(e) => handleLpcChange('testimonials', e.target.value)} />
+                    </FormField>
+                  </div>
+                </div>
 
                 <div className="border-t border-[rgb(var(--border))]" />
 
-                <FormField label="FAQ Title" icon={FiType}>
-                  <input className="input-shell" placeholder="FAQ section heading" value={form.landingPageContent.faqTitle} onChange={(e) => handleLpcChange('faqTitle', e.target.value)} maxLength={200} />
-                </FormField>
-                <FormField label="FAQ Items (JSON array)" description="Array of { question, answer } objects." icon={FiType}>
-                  <textarea className="input-shell min-h-[180px] resize-y font-mono text-xs" placeholder='[{ "question": "...", "answer": "..." }]' value={form.landingPageContent.faqItems} onChange={(e) => handleLpcChange('faqItems', e.target.value)} />
-                </FormField>
+                {/* FAQ */}
+                <div>
+                  <div className="mb-4 flex items-center gap-2">
+                    <div className="h-1 w-8 rounded-full bg-cyan-500/40" />
+                    <p className="text-xs font-semibold uppercase tracking-[0.15em] text-cyan-500">FAQ</p>
+                  </div>
+                  <div className="space-y-5">
+                    <FormField label="Title" icon={FiType}>
+                      <input className="input-shell" placeholder="FAQ section heading" value={form.landingPageContent.faqTitle} onChange={(e) => handleLpcChange('faqTitle', e.target.value)} maxLength={200} />
+                    </FormField>
+                    <FormField label="JSON Data" description="Array of { question, answer } objects." icon={FiType}>
+                      <textarea className="input-shell min-h-[180px] resize-y font-mono text-xs" placeholder='[{ "question": "...", "answer": "..." }]' value={form.landingPageContent.faqItems} onChange={(e) => handleLpcChange('faqItems', e.target.value)} />
+                    </FormField>
+                  </div>
+                </div>
 
                 <div className="border-t border-[rgb(var(--border))]" />
 
-                <FormField label="Services Title" icon={FiType}>
-                  <input className="input-shell" placeholder="Services section heading" value={form.landingPageContent.servicesTitle} onChange={(e) => handleLpcChange('servicesTitle', e.target.value)} maxLength={200} />
-                </FormField>
-                <FormField label="Services Description" icon={FiType}>
-                  <textarea className="input-shell min-h-[80px] resize-y" placeholder="Services section description" value={form.landingPageContent.servicesDescription} onChange={(e) => handleLpcChange('servicesDescription', e.target.value)} maxLength={1000} />
-                </FormField>
-                <FormField label="Services (JSON array)" description="Array of { title, description, bullets: [string] } objects." icon={FiType}>
-                  <textarea className="input-shell min-h-[180px] resize-y font-mono text-xs" placeholder='[{ "title": "...", "description": "...", "bullets": ["..."] }]' value={form.landingPageContent.services} onChange={(e) => handleLpcChange('services', e.target.value)} />
-                </FormField>
+                {/* Services */}
+                <div>
+                  <div className="mb-4 flex items-center gap-2">
+                    <div className="h-1 w-8 rounded-full bg-purple-500/40" />
+                    <p className="text-xs font-semibold uppercase tracking-[0.15em] text-purple-500">Services</p>
+                  </div>
+                  <div className="space-y-5">
+                    <FormField label="Title" icon={FiType}>
+                      <input className="input-shell" placeholder="Services section heading" value={form.landingPageContent.servicesTitle} onChange={(e) => handleLpcChange('servicesTitle', e.target.value)} maxLength={200} />
+                    </FormField>
+                    <FormField label="Description" icon={FiType}>
+                      <textarea className="input-shell min-h-[80px] resize-y" placeholder="Services section description" value={form.landingPageContent.servicesDescription} onChange={(e) => handleLpcChange('servicesDescription', e.target.value)} maxLength={1000} />
+                    </FormField>
+                    <FormField label="JSON Data" description="Array of { title, description, bullets } objects." icon={FiType}>
+                      <textarea className="input-shell min-h-[180px] resize-y font-mono text-xs" placeholder='[{ "title": "...", "description": "...", "bullets": ["..."] }]' value={form.landingPageContent.services} onChange={(e) => handleLpcChange('services', e.target.value)} />
+                    </FormField>
+                  </div>
+                </div>
 
                 <div className="border-t border-[rgb(var(--border))]" />
 
-                <FormField label="Contact Title" icon={FiType}>
-                  <input className="input-shell" placeholder="Contact section heading" value={form.landingPageContent.contactTitle} onChange={(e) => handleLpcChange('contactTitle', e.target.value)} maxLength={200} />
-                </FormField>
-                <FormField label="Contact Description" icon={FiType}>
-                  <textarea className="input-shell min-h-[80px] resize-y" placeholder="Contact section description" value={form.landingPageContent.contactDescription} onChange={(e) => handleLpcChange('contactDescription', e.target.value)} maxLength={500} />
-                </FormField>
-                <FormField label="Contact Phone" icon={FiType}>
-                  <input className="input-shell" placeholder="Phone number" value={form.landingPageContent.contactPhone} onChange={(e) => handleLpcChange('contactPhone', e.target.value)} maxLength={50} />
-                </FormField>
-                <FormField label="Timezone" icon={FiType}>
-                  <input className="input-shell" placeholder="e.g. Asia/Calcutta" value={form.landingPageContent.contactTimezone} onChange={(e) => handleLpcChange('contactTimezone', e.target.value)} maxLength={50} />
-                </FormField>
-                <FormField label="Reply Time" icon={FiType}>
-                  <input className="input-shell" placeholder="e.g. Within 24 hours" value={form.landingPageContent.contactReplyTime} onChange={(e) => handleLpcChange('contactReplyTime', e.target.value)} maxLength={50} />
-                </FormField>
+                {/* Contact */}
+                <div>
+                  <div className="mb-4 flex items-center gap-2">
+                    <div className="h-1 w-8 rounded-full bg-sky-500/40" />
+                    <p className="text-xs font-semibold uppercase tracking-[0.15em] text-sky-500">Contact Details</p>
+                  </div>
+                  <div className="space-y-5">
+                    <FormField label="Title" icon={FiType}>
+                      <input className="input-shell" placeholder="Contact section heading" value={form.landingPageContent.contactTitle} onChange={(e) => handleLpcChange('contactTitle', e.target.value)} maxLength={200} />
+                    </FormField>
+                    <FormField label="Description" icon={FiType}>
+                      <textarea className="input-shell min-h-[80px] resize-y" placeholder="Contact section description" value={form.landingPageContent.contactDescription} onChange={(e) => handleLpcChange('contactDescription', e.target.value)} maxLength={500} />
+                    </FormField>
+                    <div className="grid gap-5 sm:grid-cols-3">
+                      <FormField label="Phone" icon={FiType}>
+                        <input className="input-shell" placeholder="Phone number" value={form.landingPageContent.contactPhone} onChange={(e) => handleLpcChange('contactPhone', e.target.value)} maxLength={50} />
+                      </FormField>
+                      <FormField label="Timezone" icon={FiType}>
+                        <input className="input-shell" placeholder="e.g. Asia/Calcutta" value={form.landingPageContent.contactTimezone} onChange={(e) => handleLpcChange('contactTimezone', e.target.value)} maxLength={50} />
+                      </FormField>
+                      <FormField label="Reply Time" icon={FiType}>
+                        <input className="input-shell" placeholder="e.g. Within 24 hours" value={form.landingPageContent.contactReplyTime} onChange={(e) => handleLpcChange('contactReplyTime', e.target.value)} maxLength={50} />
+                      </FormField>
+                    </div>
+                  </div>
+                </div>
 
                 <div className="border-t border-[rgb(var(--border))]" />
 
-                <FormField label="Footer Description" icon={FiType}>
-                  <textarea className="input-shell min-h-[80px] resize-y" placeholder="Footer description" value={form.landingPageContent.footerDescription} onChange={(e) => handleLpcChange('footerDescription', e.target.value)} maxLength={500} />
-                </FormField>
+                {/* Footer */}
+                <div>
+                  <div className="mb-4 flex items-center gap-2">
+                    <div className="h-1 w-8 rounded-full bg-slate-500/40" />
+                    <p className="text-xs font-semibold uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400">Footer</p>
+                  </div>
+                  <div className="space-y-5">
+                    <FormField label="Description" icon={FiType}>
+                      <textarea className="input-shell min-h-[80px] resize-y" placeholder="Footer description" value={form.landingPageContent.footerDescription} onChange={(e) => handleLpcChange('footerDescription', e.target.value)} maxLength={500} />
+                    </FormField>
+                  </div>
+                </div>
               </div>
-            </motion.div>
+            </div>
+          </motion.div>
 
           {/* Right sidebar */}
           <motion.div {...fadeUp(0.10)} className="space-y-6">
