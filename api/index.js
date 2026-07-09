@@ -1,6 +1,6 @@
-import { connectDatabase } from '../../server/src/config/database.js';
-import { seedIfEmpty } from '../../server/src/config/bootstrap.js';
-import { createApp } from '../../server/src/app.js';
+import { connectDatabase } from '../server/src/config/database.js';
+import { seedIfEmpty } from '../server/src/config/bootstrap.js';
+import { createApp } from '../server/src/app.js';
 
 let handler;
 
