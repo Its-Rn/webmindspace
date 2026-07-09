@@ -377,14 +377,14 @@ export const LandingPage = () => {
             <h1 className="font-display text-5xl font-extrabold tracking-tight text-slate-950 dark:text-white sm:text-6xl">
               {displaySiteName}
             </h1>
+            <p className="text-center text-xs font-medium text-slate-400 dark:text-slate-500">
+              by web_Aryan
+            </p>
             <p className="mx-auto max-w-xl text-xl font-medium text-cyan-600 dark:text-cyan-400">
               {displayTagline}
             </p>
             <p className="mx-auto max-w-2xl text-base leading-8 text-slate-500 dark:text-slate-400">
               Bring your tasks, notes, blogs, timeline, and real-time chat into one unified workspace. Sign in to your account to get started.
-            </p>
-            <p className="pt-2 text-xs text-slate-400 dark:text-slate-500">
-              {displaySiteName} &middot; by web_Aryan &middot; {displayTagline}
             </p>
           </div>
 
