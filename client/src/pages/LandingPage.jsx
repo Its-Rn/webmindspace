@@ -384,7 +384,7 @@ export const LandingPage = () => {
               Bring your tasks, notes, blogs, timeline, and real-time chat into one unified workspace. Sign in to your account to get started.
             </p>
             <p className="pt-2 text-xs text-slate-400 dark:text-slate-500">
-              by web_Aryan
+              {displaySiteName} &middot; Personal OS &middot; by web_Aryan
             </p>
           </div>
 
