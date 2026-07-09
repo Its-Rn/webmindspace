@@ -8,11 +8,16 @@ import {
 } from '../services/timeline.service.js';
 
 export const getTimelinePosts = asyncHandler(async (req, res) => {
-  const { page, limit } = req.query;
+  const { page, limit, search, year, month, startDate, endDate } = req.query;
   const result = await listTimelinePosts({
     authorId: req.user._id,
     page: parseInt(page, 10) || 1,
-    limit: parseInt(limit, 10) || 20
+    limit: parseInt(limit, 10) || 20,
+    search,
+    year,
+    month,
+    startDate,
+    endDate
   });
 
   res.status(200).json({

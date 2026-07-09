@@ -2,9 +2,39 @@ import TimelinePost from '../models/TimelinePost.js';
 import User from '../models/User.js';
 import { AppError } from '../utils/appError.js';
 
-export const listTimelinePosts = async ({ authorId, page = 1, limit = 20 }) => {
+export const listTimelinePosts = async ({ authorId, page = 1, limit = 20, search, year, month, startDate, endDate }) => {
   const filter = {};
   if (authorId) filter.author = authorId;
+
+  if (search) {
+    filter.content = { $regex: search, $options: 'i' };
+  }
+
+  if (startDate || endDate) {
+    filter.createdAt = {};
+    if (startDate) filter.createdAt.$gte = new Date(startDate);
+    if (endDate) filter.createdAt.$lte = new Date(endDate);
+  }
+
+  if (year) {
+    const y = parseInt(year, 10);
+    filter.createdAt = {
+      ...filter.createdAt,
+      $gte: new Date(`${y}-01-01`),
+      $lte: new Date(`${y}-12-31T23:59:59.999Z`)
+    };
+  }
+
+  if (month && !year) {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = parseInt(month, 10);
+    filter.createdAt = {
+      ...filter.createdAt,
+      $gte: new Date(`${y}-${String(m).padStart(2, '0')}-01`),
+      $lte: new Date(`${y}-${String(m).padStart(2, '0')}-28T23:59:59.999Z`)
+    };
+  }
 
   const skip = (page - 1) * limit;
 
