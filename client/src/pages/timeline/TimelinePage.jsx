@@ -8,7 +8,6 @@ import {
   FiMapPin,
   FiSend,
   FiTrash2,
-  FiZap
 } from 'react-icons/fi';
 
 import { timelineService } from '../../services/timeline';
@@ -24,6 +23,98 @@ const formatRelative = (date) => {
   if (days < 7) return `${days}d ago`;
   return new Date(date).toLocaleDateString();
 };
+
+const pastelCircle = [
+  'bg-rose-200 dark:bg-rose-300/40',
+  'bg-sky-200 dark:bg-sky-300/40',
+  'bg-amber-200 dark:bg-amber-300/40',
+  'bg-emerald-200 dark:bg-emerald-300/40',
+  'bg-purple-200 dark:bg-purple-300/40',
+  'bg-pink-200 dark:bg-pink-300/40',
+  'bg-teal-200 dark:bg-teal-300/40',
+  'bg-orange-200 dark:bg-orange-300/40',
+  'bg-indigo-200 dark:bg-indigo-300/40',
+  'bg-lime-200 dark:bg-lime-300/40',
+];
+
+const pastelBadge = [
+  'bg-rose-100 text-rose-700 border-rose-300 dark:bg-rose-300/30 dark:text-rose-200',
+  'bg-sky-100 text-sky-700 border-sky-300 dark:bg-sky-300/30 dark:text-sky-200',
+  'bg-amber-100 text-amber-700 border-amber-300 dark:bg-amber-300/30 dark:text-amber-200',
+  'bg-emerald-100 text-emerald-700 border-emerald-300 dark:bg-emerald-300/30 dark:text-emerald-200',
+  'bg-purple-100 text-purple-700 border-purple-300 dark:bg-purple-300/30 dark:text-purple-200',
+  'bg-pink-100 text-pink-700 border-pink-300 dark:bg-pink-300/30 dark:text-pink-200',
+  'bg-teal-100 text-teal-700 border-teal-300 dark:bg-teal-300/30 dark:text-teal-200',
+  'bg-orange-100 text-orange-700 border-orange-300 dark:bg-orange-300/30 dark:text-orange-200',
+  'bg-indigo-100 text-indigo-700 border-indigo-300 dark:bg-indigo-300/30 dark:text-indigo-200',
+  'bg-lime-100 text-lime-700 border-lime-300 dark:bg-lime-300/30 dark:text-lime-200',
+];
+
+function groupByYear(posts) {
+  const map = new Map();
+  for (const p of posts) {
+    const y = new Date(p.createdAt).getFullYear().toString();
+    if (!map.has(y)) map.set(y, []);
+    map.get(y).push(p);
+  }
+  return Array.from(map.entries()).map(([year, posts]) => ({ year, posts }));
+}
+
+function TimelineItem({ item, index, onDelete }) {
+  const isLeft = index % 2 === 0;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 40 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-80px' }}
+      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+      className={`relative flex flex-col md:flex-row items-start gap-6 md:gap-0 ${
+        isLeft ? 'md:flex-row' : 'md:flex-row-reverse'
+      }`}
+    >
+      <div className={`flex-1 w-full md:w-1/2 ${isLeft ? 'md:pr-12 md:text-right' : 'md:pl-12'}`}>
+        <div className="surface-card p-5 inline-block w-full max-w-lg">
+          {item.year && (
+            <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold border mb-3 ${pastelBadge[index % pastelBadge.length]}`}>
+              {item.year}
+            </span>
+          )}
+          {item.posts.map((post) => (
+            <div key={post.id} className="mb-4 last:mb-0">
+              <p className="text-sm leading-7 text-slate-600 dark:text-slate-300 whitespace-pre-wrap">{post.content}</p>
+              {post.mediaUrl && (
+                <div className="mt-2 overflow-hidden rounded-2xl bg-slate-100 dark:bg-slate-800">
+                  <img src={post.mediaUrl} alt="" className="max-h-60 w-full object-cover" />
+                </div>
+              )}
+              <div className={`mt-2 flex items-center gap-2 ${isLeft ? 'md:justify-end' : ''}`}>
+                <span className="text-xs text-slate-400">{formatRelative(post.createdAt)}</span>
+                {post.isPinned && <FiMapPin className="text-xs text-cyan-500" />}
+                <button
+                  type="button"
+                  onClick={() => onDelete(post.id)}
+                  className="text-xs text-slate-400 hover:text-red-500 transition-colors"
+                  title="Delete"
+                >
+                  <FiTrash2 className="text-xs" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="absolute left-1/2 top-6 z-10 hidden -translate-x-1/2 md:block">
+        <div className={`h-10 w-10 rounded-full border-2 border-slate-900 dark:border-slate-100 ${pastelCircle[index % pastelCircle.length]} flex items-center justify-center shadow-md`}>
+          <div className="h-2 w-2 rounded-full bg-slate-900 dark:bg-slate-100" />
+        </div>
+      </div>
+
+      <div className="flex-1 hidden md:block" />
+    </motion.div>
+  );
+}
 
 export const TimelinePage = () => {
   const queryClient = useQueryClient();
@@ -76,6 +167,7 @@ export const TimelinePage = () => {
 
   const posts = data?.pages?.flatMap((page) => page.data?.posts || []) || [];
   const allLoaded = !hasNextPage && posts.length > 0;
+  const groups = groupByYear(posts);
 
   const handleSubmit = () => {
     const content = newContent.trim();
@@ -157,7 +249,7 @@ export const TimelinePage = () => {
         <div className="flex items-center justify-center py-20">
           <div className="h-10 w-10 animate-spin rounded-full border-2 border-cyan-400 border-t-transparent" />
         </div>
-      ) : posts.length === 0 ? (
+      ) : groups.length === 0 ? (
         <div className="surface-card p-12 text-center">
           <FiMessageSquare className="mx-auto text-4xl text-slate-400" />
           <h3 className="mt-4 font-display text-xl font-semibold text-slate-950 dark:text-white">No posts yet</h3>
@@ -166,68 +258,16 @@ export const TimelinePage = () => {
           </p>
         </div>
       ) : (
-        <div className="space-y-4">
-          {posts.map((post) => (
-            <motion.div
-              key={post.id}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              className={`surface-card p-5 ${post.isPinned ? 'ring-1 ring-cyan-400/30' : ''}`}
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex items-start gap-3 min-w-0 flex-1">
-                  <div className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-500">
-                    <FiClock />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-sm text-slate-950 dark:text-white">
-                        {post.author?.name || 'You'}
-                      </span>
-                      {post.isPinned && (
-                        <span className="text-[10px] text-cyan-500 flex items-center gap-1">
-                          <FiMapPin className="text-xs" /> Pinned
-                        </span>
-                      )}
-                      <span className="text-xs text-slate-500">{formatRelative(post.createdAt)}</span>
-                    </div>
-                    <p className="mt-2 text-sm leading-7 text-slate-600 dark:text-slate-300 whitespace-pre-wrap">
-                      {post.content}
-                    </p>
-                    {post.mediaUrl && (
-                      <div className="mt-3 overflow-hidden rounded-2xl bg-slate-100 dark:bg-slate-800">
-                        <img src={post.mediaUrl} alt="Media" className="max-h-80 w-full object-cover" />
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center gap-1 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => pinMutation.mutate(post.id)}
-                    className={`p-2 rounded-lg transition-colors ${
-                      post.isPinned ? 'text-cyan-500 bg-cyan-500/10' : 'text-slate-400 hover:text-cyan-500'
-                    }`}
-                    title={post.isPinned ? 'Unpin' : 'Pin to top'}
-                  >
-                    <FiMapPin className="text-sm" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (window.confirm('Delete this post?')) deleteMutation.mutate(post.id);
-                    }}
-                    className="p-2 rounded-lg text-slate-400 hover:text-red-500 transition-colors"
-                    title="Delete"
-                  >
-                    <FiTrash2 className="text-sm" />
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          ))}
+        <div className="relative py-8">
+          <div className="absolute left-1/2 top-0 h-full w-0.5 -translate-x-1/2 bg-slate-300 dark:bg-slate-600 hidden md:block" />
 
-          <div className="flex justify-center py-4">
+          <div className="relative space-y-16">
+            {groups.map((item, index) => (
+              <TimelineItem key={item.year} item={item} index={index} onDelete={(id) => deleteMutation.mutate(id)} />
+            ))}
+          </div>
+
+          <div className="flex justify-center py-8">
             {isFetchingNextPage ? (
               <div className="h-8 w-8 animate-spin rounded-full border-2 border-cyan-400 border-t-transparent" />
             ) : hasNextPage ? (
@@ -235,7 +275,13 @@ export const TimelinePage = () => {
                 Load more
               </button>
             ) : allLoaded ? (
-              <span className="text-sm text-slate-500">You've reached the beginning.</span>
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-sm text-slate-400 dark:text-slate-500 italic"
+              >
+                — End of timeline —
+              </motion.p>
             ) : null}
           </div>
         </div>
