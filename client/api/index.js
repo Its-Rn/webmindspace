@@ -1,9 +1,24 @@
 import { connectDatabase } from '../../server/src/config/database.js';
+import { seedIfEmpty } from '../../server/src/config/bootstrap.js';
 import { createApp } from '../../server/src/app.js';
 
-await connectDatabase();
-const app = createApp();
+let handler;
 
-export default (req, res) => {
-  app(req, res);
+export default async (req, res) => {
+  if (!handler) {
+    try {
+      await connectDatabase();
+      await seedIfEmpty();
+      const app = createApp();
+      handler = app;
+    } catch (err) {
+      console.error('Failed to initialize app:', err);
+      res.status(500).json({
+        success: false,
+        message: 'Server initialization failed. Please try again later.'
+      });
+      return;
+    }
+  }
+  handler(req, res);
 };

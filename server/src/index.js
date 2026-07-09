@@ -1,7 +1,7 @@
 import http from 'http';
 import { createApp } from './app.js';
 import { connectDatabase, disconnectDatabase } from './config/database.js';
-import { ensureDemoUsers } from './config/ensureDemoUsers.js';
+import { seedIfEmpty } from './config/bootstrap.js';
 import { appEnv } from './config/env.js';
 import { ensureStorageDirectories } from './config/storage.js';
 
@@ -28,10 +28,7 @@ const startServer = async () => {
   try {
     await ensureStorageDirectories();
     await connectDatabase();
-
-    if (appEnv.nodeEnv === 'development') {
-      await ensureDemoUsers();
-    }
+    await seedIfEmpty();
 
     server.listen(appEnv.port, () => {
       console.log(`API listening on ${appEnv.serverUrl || `http://localhost:${appEnv.port}`}`);

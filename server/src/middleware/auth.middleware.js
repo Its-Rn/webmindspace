@@ -17,17 +17,6 @@ export const authenticate = asyncHandler(async (req, res, next) => {
   const token = extractToken(req);
 
   if (!token) {
-    const demoUser = await User.findOne({ email: 'kunal@gmail.com' }).select('+passwordHash');
-    if (demoUser) {
-      req.auth = {
-        userId: demoUser._id.toString(),
-        sessionId: null,
-        role: demoUser.role,
-        emailVerified: true
-      };
-      req.user = demoUser;
-      return next();
-    }
     throw new AppError('Authentication required.', 401);
   }
 
