@@ -256,15 +256,27 @@ export const LandingPage = () => {
   const settings = settingsQuery.data?.data?.settings;
 
   const [cachedName, setCachedName] = useState(() => localStorage.getItem('siteName') || '');
+  const [cachedLogo, setCachedLogo] = useState(() => localStorage.getItem('siteLogoText') || '');
+  const [cachedTagline, setCachedTagline] = useState(() => localStorage.getItem('siteTagline') || '');
 
   useEffect(() => {
     if (settings?.siteName) {
       localStorage.setItem('siteName', settings.siteName);
       setCachedName(settings.siteName);
     }
+    if (settings?.siteLogoText) {
+      localStorage.setItem('siteLogoText', settings.siteLogoText);
+      setCachedLogo(settings.siteLogoText);
+    }
+    if (settings?.siteTagline) {
+      localStorage.setItem('siteTagline', settings.siteTagline);
+      setCachedTagline(settings.siteTagline);
+    }
   }, [settings]);
 
   const displaySiteName = settings?.siteName || cachedName || 'Pulse';
+  const displaySiteLogo = settings?.siteLogoText?.charAt(0)?.toUpperCase() || cachedLogo.charAt(0)?.toUpperCase() || 'P';
+  const displayTagline = settings?.siteTagline || cachedTagline || 'Personal OS';
   const landingPageContent = settings?.landingPageContent || {};
 
   const dynamicFeatures = landingPageContent.features?.length
@@ -358,18 +370,21 @@ export const LandingPage = () => {
         >
           {/* Logo Brand */}
           <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-cyan-400 via-sky-400 to-indigo-500 text-3xl font-extrabold text-slate-950 shadow-xl shadow-cyan-500/20">
-            P
+            {displaySiteLogo}
           </div>
 
           <div className="space-y-4">
-            <h1 className="font-display text-5xl font-extrabold tracking-tight text-slate-950 dark:text-white sm:text-6xl animate-pulse">
-              Pulse
+            <h1 className="font-display text-5xl font-extrabold tracking-tight text-slate-950 dark:text-white sm:text-6xl">
+              {displaySiteName}
             </h1>
             <p className="mx-auto max-w-xl text-xl font-medium text-cyan-600 dark:text-cyan-400">
-              A premium personal OS for focus and clarity.
+              {displayTagline}
             </p>
             <p className="mx-auto max-w-2xl text-base leading-8 text-slate-500 dark:text-slate-400">
               Bring your tasks, notes, blogs, timeline, and real-time chat into one unified workspace. Sign in to your account to get started.
+            </p>
+            <p className="pt-2 text-xs text-slate-400 dark:text-slate-500">
+              by web_Aryan
             </p>
           </div>
 
@@ -422,7 +437,7 @@ export const LandingPage = () => {
                 Hey, {currentUser?.name ? currentUser.name.split(' ')[0] : 'Operator'}!
               </h1>
               <p className="max-w-2xl text-base leading-8 text-slate-600 dark:text-slate-300">
-                Your Pulse Personal OS account is fully active. Below are your unique workspace access rights and features:
+                Your {displaySiteName} account is fully active. Below are your unique workspace access rights and features:
               </p>
             </div>
 
