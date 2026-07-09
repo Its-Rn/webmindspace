@@ -2,7 +2,7 @@ import rateLimit from 'express-rate-limit';
 import { Router } from 'express';
 
 import { submitContactForm } from '../controllers/public.controller.js';
-import { getSettings } from '../controllers/settings.controller.js';
+import { getSettings, getSettingsBrief } from '../controllers/settings.controller.js';
 import { validateRequest } from '../middleware/validateRequest.middleware.js';
 import { contactFormSchema } from '../validators/public.validators.js';
 
@@ -21,5 +21,6 @@ const contactLimiter = rateLimit({
 
 publicRouter.post('/contact', contactLimiter, validateRequest(contactFormSchema), submitContactForm);
 publicRouter.get('/settings', getSettings);
+publicRouter.get('/settings/brief', getSettingsBrief);
 
 export default publicRouter;

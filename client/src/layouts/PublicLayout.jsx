@@ -7,7 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { UserMenu } from '../components/UserMenu';
 import { PageTransition } from '../components/PageTransition';
-import { userService } from '../services/user';
+import { useAuthQuery } from '../context/AuthContext';
 import { settingsService } from '../services/settings';
 
 const navLinks = [
@@ -24,46 +24,40 @@ export const PublicLayout = () => {
     location.pathname
   );
 
-  const currentUserQuery = useQuery({
-    queryKey: ['workspace-user'],
-    queryFn: userService.getMyProfile,
-    retry: false,
-    refetchOnWindowFocus: false,
-    staleTime: 60 * 1000
-  });
+  const currentUserQuery = useAuthQuery();
 
   const siteSettingsQuery = useQuery({
-    queryKey: ['site-settings'],
-    queryFn: settingsService.getSettings,
+    queryKey: ['site-settings-brief'],
+    queryFn: settingsService.getSettingsBrief,
     staleTime: 5 * 60 * 1000
   });
 
   const isLoggedIn = !!currentUserQuery.data?.data?.user;
   const user = currentUserQuery.data?.data?.user;
-  const siteSettings = siteSettingsQuery.data?.data?.settings;
+  const brief = siteSettingsQuery.data?.data || {};
 
   const [cachedName, setCachedName] = useState(() => localStorage.getItem('siteName') || '');
   const [cachedLogo, setCachedLogo] = useState(() => localStorage.getItem('siteLogoText') || '');
   const [cachedTagline, setCachedTagline] = useState(() => localStorage.getItem('siteTagline') || '');
 
   useEffect(() => {
-    if (siteSettings?.siteName) {
-      localStorage.setItem('siteName', siteSettings.siteName);
-      setCachedName(siteSettings.siteName);
+    if (brief.siteName) {
+      localStorage.setItem('siteName', brief.siteName);
+      setCachedName(brief.siteName);
     }
-    if (siteSettings?.siteLogoText) {
-      localStorage.setItem('siteLogoText', siteSettings.siteLogoText);
-      setCachedLogo(siteSettings.siteLogoText);
+    if (brief.siteLogoText) {
+      localStorage.setItem('siteLogoText', brief.siteLogoText);
+      setCachedLogo(brief.siteLogoText);
     }
-    if (siteSettings?.siteTagline) {
-      localStorage.setItem('siteTagline', siteSettings.siteTagline);
-      setCachedTagline(siteSettings.siteTagline);
+    if (brief.siteTagline) {
+      localStorage.setItem('siteTagline', brief.siteTagline);
+      setCachedTagline(brief.siteTagline);
     }
-  }, [siteSettings]);
+  }, [brief]);
 
-  const siteName = siteSettings?.siteName || cachedName || 'Pulse';
-  const siteLogoText = siteSettings?.siteLogoText?.charAt(0)?.toUpperCase() || cachedLogo.charAt(0)?.toUpperCase() || 'P';
-  const siteTagline = siteSettings?.siteTagline || cachedTagline || 'Personal OS';
+  const siteName = brief.siteName || cachedName || 'Pulse';
+  const siteLogoText = brief.siteLogoText?.charAt(0)?.toUpperCase() || cachedLogo.charAt(0)?.toUpperCase() || 'P';
+  const siteTagline = brief.siteTagline || cachedTagline || 'Personal OS';
 
   const closeMobile = () => setMobileOpen(false);
 

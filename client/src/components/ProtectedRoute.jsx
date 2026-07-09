@@ -1,8 +1,7 @@
-import { useQuery } from '@tanstack/react-query';
 import { Link, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
-import { userService } from '../services/user';
+import { useAuthQuery } from '../context/AuthContext';
 import { ErrorBoundary } from './ErrorBoundary';
 
 const LoadingState = () => {
@@ -27,12 +26,7 @@ const LoadingState = () => {
 
 export const ProtectedRoute = () => {
   const location = useLocation();
-  const currentUserQuery = useQuery({
-    queryKey: ['workspace-user'],
-    queryFn: userService.getMyProfile,
-    retry: false,
-    staleTime: 60 * 1000
-  });
+  const currentUserQuery = useAuthQuery();
 
   if (currentUserQuery.isLoading) {
     return <LoadingState />;

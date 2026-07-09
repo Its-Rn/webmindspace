@@ -35,7 +35,7 @@ import {
 
 import { publicService } from '../services/public';
 import { settingsService } from '../services/settings';
-import { userService } from '../services/user';
+import { useAuthQuery } from '../context/AuthContext';
 
 const heroStats = [
   { label: 'Modules planned', value: '12+' },
@@ -238,18 +238,12 @@ export const LandingPage = () => {
   const [activeFaqIndex, setActiveFaqIndex] = useState(0);
   const [contactNotice, setContactNotice] = useState({ tone: '', text: '' });
   
-  const currentUserQuery = useQuery({
-    queryKey: ['workspace-user'],
-    queryFn: userService.getMyProfile,
-    retry: false,
-    refetchOnWindowFocus: false,
-    staleTime: 60 * 1000
-  });
+  const currentUserQuery = useAuthQuery();
 
   const settingsQuery = useQuery({
     queryKey: ['site-settings'],
     queryFn: settingsService.getSettings,
-    staleTime: 60 * 1000,
+    staleTime: 5 * 60 * 1000,
     retry: false
   });
 

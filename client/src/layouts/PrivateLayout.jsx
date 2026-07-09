@@ -47,34 +47,34 @@ export const PrivateLayout = () => {
   const unreadCount = unreadCountData?.data?.data?.count ?? 0;
 
   const { data: siteSettingsData } = useQuery({
-    queryKey: ['site-settings'],
-    queryFn: settingsService.getSettings,
+    queryKey: ['site-settings-brief'],
+    queryFn: settingsService.getSettingsBrief,
     staleTime: 5 * 60 * 1000
   });
-  const siteSettings = siteSettingsData?.data?.settings;
+  const brief = siteSettingsData?.data || {};
 
   const [cachedName, setCachedName] = useState(() => localStorage.getItem('siteName') || '');
   const [cachedLogo, setCachedLogo] = useState(() => localStorage.getItem('siteLogoText') || '');
   const [cachedTagline, setCachedTagline] = useState(() => localStorage.getItem('siteTagline') || '');
 
   useEffect(() => {
-    if (siteSettings?.siteName) {
-      localStorage.setItem('siteName', siteSettings.siteName);
-      setCachedName(siteSettings.siteName);
+    if (brief.siteName) {
+      localStorage.setItem('siteName', brief.siteName);
+      setCachedName(brief.siteName);
     }
-    if (siteSettings?.siteLogoText) {
-      localStorage.setItem('siteLogoText', siteSettings.siteLogoText);
-      setCachedLogo(siteSettings.siteLogoText);
+    if (brief.siteLogoText) {
+      localStorage.setItem('siteLogoText', brief.siteLogoText);
+      setCachedLogo(brief.siteLogoText);
     }
-    if (siteSettings?.siteTagline) {
-      localStorage.setItem('siteTagline', siteSettings.siteTagline);
-      setCachedTagline(siteSettings.siteTagline);
+    if (brief.siteTagline) {
+      localStorage.setItem('siteTagline', brief.siteTagline);
+      setCachedTagline(brief.siteTagline);
     }
-  }, [siteSettings]);
+  }, [brief]);
 
-  const siteName = siteSettings?.siteName || cachedName || 'Pulse';
-  const siteLogoText = siteSettings?.siteLogoText?.charAt(0)?.toUpperCase() || cachedLogo.charAt(0)?.toUpperCase() || 'P';
-  const siteTagline = siteSettings?.siteTagline || cachedTagline || 'Personal OS';
+  const siteName = brief.siteName || cachedName || 'Pulse';
+  const siteLogoText = brief.siteLogoText?.charAt(0)?.toUpperCase() || cachedLogo.charAt(0)?.toUpperCase() || 'P';
+  const siteTagline = brief.siteTagline || cachedTagline || 'Personal OS';
 
   useEffect(() => {
     if (!currentUser) return undefined;

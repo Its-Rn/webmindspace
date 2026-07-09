@@ -10,6 +10,18 @@ export const getSettings = asyncHandler(async (req, res) => {
   });
 });
 
+export const getSettingsBrief = asyncHandler(async (req, res) => {
+  const settings = await settingsService.getSettings();
+  res.status(200).json({
+    success: true,
+    data: {
+      siteName: settings.siteName,
+      siteLogoText: settings.siteLogoText,
+      siteTagline: settings.siteTagline
+    }
+  });
+});
+
 export const updateSettings = asyncHandler(async (req, res) => {
   const settings = await settingsService.updateSettings(req.body);
   res.status(200).json({
