@@ -52,9 +52,29 @@ export const PrivateLayout = () => {
     staleTime: 5 * 60 * 1000
   });
   const siteSettings = siteSettingsData?.data?.settings;
-  const siteName = siteSettings?.siteName || 'Pulse';
-  const siteLogoText = siteSettings?.siteLogoText?.charAt(0)?.toUpperCase() || 'P';
-  const siteTagline = siteSettings?.siteTagline || 'Personal OS';
+
+  const [cachedName, setCachedName] = useState(() => localStorage.getItem('siteName') || '');
+  const [cachedLogo, setCachedLogo] = useState(() => localStorage.getItem('siteLogoText') || '');
+  const [cachedTagline, setCachedTagline] = useState(() => localStorage.getItem('siteTagline') || '');
+
+  useEffect(() => {
+    if (siteSettings?.siteName) {
+      localStorage.setItem('siteName', siteSettings.siteName);
+      setCachedName(siteSettings.siteName);
+    }
+    if (siteSettings?.siteLogoText) {
+      localStorage.setItem('siteLogoText', siteSettings.siteLogoText);
+      setCachedLogo(siteSettings.siteLogoText);
+    }
+    if (siteSettings?.siteTagline) {
+      localStorage.setItem('siteTagline', siteSettings.siteTagline);
+      setCachedTagline(siteSettings.siteTagline);
+    }
+  }, [siteSettings]);
+
+  const siteName = siteSettings?.siteName || cachedName || 'Pulse';
+  const siteLogoText = siteSettings?.siteLogoText?.charAt(0)?.toUpperCase() || cachedLogo.charAt(0)?.toUpperCase() || 'P';
+  const siteTagline = siteSettings?.siteTagline || cachedTagline || 'Personal OS';
 
   useEffect(() => {
     if (!currentUser) return undefined;

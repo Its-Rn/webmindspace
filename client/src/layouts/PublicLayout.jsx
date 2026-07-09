@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiMenu, FiX, FiActivity } from 'react-icons/fi';
@@ -41,9 +41,29 @@ export const PublicLayout = () => {
   const isLoggedIn = !!currentUserQuery.data?.data?.user;
   const user = currentUserQuery.data?.data?.user;
   const siteSettings = siteSettingsQuery.data?.data?.settings;
-  const siteName = siteSettings?.siteName || 'Pulse';
-  const siteLogoText = siteSettings?.siteLogoText?.charAt(0)?.toUpperCase() || 'P';
-  const siteTagline = siteSettings?.siteTagline || 'Personal OS';
+
+  const [cachedName, setCachedName] = useState(() => localStorage.getItem('siteName') || '');
+  const [cachedLogo, setCachedLogo] = useState(() => localStorage.getItem('siteLogoText') || '');
+  const [cachedTagline, setCachedTagline] = useState(() => localStorage.getItem('siteTagline') || '');
+
+  useEffect(() => {
+    if (siteSettings?.siteName) {
+      localStorage.setItem('siteName', siteSettings.siteName);
+      setCachedName(siteSettings.siteName);
+    }
+    if (siteSettings?.siteLogoText) {
+      localStorage.setItem('siteLogoText', siteSettings.siteLogoText);
+      setCachedLogo(siteSettings.siteLogoText);
+    }
+    if (siteSettings?.siteTagline) {
+      localStorage.setItem('siteTagline', siteSettings.siteTagline);
+      setCachedTagline(siteSettings.siteTagline);
+    }
+  }, [siteSettings]);
+
+  const siteName = siteSettings?.siteName || cachedName || 'Pulse';
+  const siteLogoText = siteSettings?.siteLogoText?.charAt(0)?.toUpperCase() || cachedLogo.charAt(0)?.toUpperCase() || 'P';
+  const siteTagline = siteSettings?.siteTagline || cachedTagline || 'Personal OS';
 
   const closeMobile = () => setMobileOpen(false);
 

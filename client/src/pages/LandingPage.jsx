@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
@@ -254,6 +254,17 @@ export const LandingPage = () => {
   });
 
   const settings = settingsQuery.data?.data?.settings;
+
+  const [cachedName, setCachedName] = useState(() => localStorage.getItem('siteName') || '');
+
+  useEffect(() => {
+    if (settings?.siteName) {
+      localStorage.setItem('siteName', settings.siteName);
+      setCachedName(settings.siteName);
+    }
+  }, [settings]);
+
+  const displaySiteName = settings?.siteName || cachedName || 'Pulse';
   const landingPageContent = settings?.landingPageContent || {};
 
   const dynamicFeatures = landingPageContent.features?.length
@@ -1086,7 +1097,7 @@ export const LandingPage = () => {
 
       <footer className="surface-card flex flex-col gap-5 px-6 py-6 sm:px-8 sm:py-7 lg:flex-row lg:items-center lg:justify-between">
         <div className="space-y-2">
-          <p className="font-display text-xl font-semibold tracking-tight text-slate-950 dark:text-white">{settings?.siteName || 'Pulse'}</p>
+          <p className="font-display text-xl font-semibold tracking-tight text-slate-950 dark:text-white">{displaySiteName}</p>
           <p className="text-sm text-slate-500 dark:text-slate-400">
             {landingPageContent.footerDescription || 'A premium personal productivity platform built phase by phase.'}
           </p>
