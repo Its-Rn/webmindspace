@@ -9,8 +9,7 @@ export default async (req, res) => {
     try {
       await connectDatabase();
       await seedIfEmpty();
-      const app = createApp();
-      handler = app;
+      handler = createApp();
     } catch (err) {
       console.error('Failed to initialize app:', err);
       res.status(500).json({

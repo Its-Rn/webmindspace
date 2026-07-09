@@ -21,3 +21,6 @@ outputs/
 work/
 *.bat
 
+
+.vercel
+.env*

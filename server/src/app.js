@@ -60,10 +60,11 @@ export const createApp = () => {
   if (appEnv.nodeEnv === 'production') {
     const clientBuildDir = path.resolve(serverRootDir, '..', 'client', 'dist');
     app.use(express.static(clientBuildDir));
-    app.get('*', (req, res) => {
-      if (!req.path.startsWith('/api')) {
-        res.sendFile(path.join(clientBuildDir, 'index.html'));
-      }
+    app.use((req, res, next) => {
+      if (req.path.startsWith('/api')) return next();
+      res.sendFile(path.join(clientBuildDir, 'index.html'), (err) => {
+        if (err) next(err);
+      });
     });
   }
 

@@ -1,6 +1,7 @@
 {
   "name": "personal-productivity-platform",
   "private": true,
+  "type": "module",
   "version": "0.1.0",
   "description": "A production-ready full-stack personal productivity platform scaffold.",
   "scripts": {
