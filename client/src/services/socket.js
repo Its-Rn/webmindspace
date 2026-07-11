@@ -2,6 +2,7 @@ import { io } from 'socket.io-client';
 
 let socketInstance = null;
 const channelBindings = new Map();
+const activeSubscriptions = new Set();
 
 const getCookie = (name) => {
   const match = document.cookie.match(new RegExp(`(?:^|; )${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}=([^;]*)`));
@@ -47,6 +48,12 @@ const buildChannel = (socket, channelName) => ({
   }
 });
 
+const resubscribeAll = (socket) => {
+  activeSubscriptions.forEach((channelName) => {
+    socket.emit('subscribe', { channelName });
+  });
+};
+
 export const getSocket = () => {
   if (socketInstance && socketInstance.connected) {
     const token = getCookie('ppp_access_token');
@@ -72,6 +79,11 @@ export const getSocket = () => {
     if (token && socket.auth) {
       socket.auth.token = token;
     }
+    resubscribeAll(socket);
+  });
+
+  socket.on('reconnect', () => {
+    resubscribeAll(socket);
   });
 
   socket.on('reconnect_attempt', () => {
@@ -82,11 +94,13 @@ export const getSocket = () => {
   });
 
   socket.subscribe = (channelName) => {
+    activeSubscriptions.add(channelName);
     socket.emit('subscribe', { channelName });
     return buildChannel(socket, channelName);
   };
 
   socket.unsubscribe = (channelName) => {
+    activeSubscriptions.delete(channelName);
     socket.emit('unsubscribe', { channelName });
   };
 
@@ -100,6 +114,7 @@ export const disconnectSocket = () => {
       socketInstance.off(eventName, handler);
     }
     channelBindings.clear();
+    activeSubscriptions.clear();
     socketInstance.disconnect();
     socketInstance = null;
   }
