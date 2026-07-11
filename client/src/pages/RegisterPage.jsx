@@ -25,6 +25,16 @@ export const RegisterPage = () => {
     mutationFn: authService.register,
     onSuccess: (response) => {
       toast.success(response?.message || 'Registration complete!');
+      if (response?.data?.approvalRequired) {
+        navigate('/login', {
+          replace: true,
+          state: {
+            notice: 'Your account is pending admin approval. You will be able to sign in once an admin activates it.'
+          }
+        });
+        return;
+      }
+
       navigate(`/verify-email?email=${encodeURIComponent(response?.data?.user?.email || '')}`, {
         replace: true,
         state: { notice: response?.message }

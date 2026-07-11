@@ -17,6 +17,7 @@ import {
   FiUser,
   FiMail,
   FiLock,
+  FiTrash2,
 } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import { adminApi } from '../../services/admin';
@@ -41,8 +42,17 @@ const AdminUsersPage = () => {
     queryFn: () => adminApi.getUsers({ page, limit: 20, search: search || undefined }),
   });
 
-  const toggleActiveMutation = useMutation({
-    mutationFn: (userId) => adminApi.toggleUserActive(userId),
+  const blockUserMutation = useMutation({
+    mutationFn: (userId) => adminApi.blockUser(userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+      setConfirmAction(null);
+    },
+  });
+
+  const unblockUserMutation = useMutation({
+    mutationFn: (userId) => adminApi.unblockUser(userId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
       queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
@@ -54,6 +64,41 @@ const AdminUsersPage = () => {
     mutationFn: (userId) => adminApi.toggleUserAdmin(userId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+      setConfirmAction(null);
+    },
+  });
+
+  const verifyEmailMutation = useMutation({
+    mutationFn: (userId) => adminApi.verifyUserEmail(userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+      setConfirmAction(null);
+    },
+  });
+
+  const suspendChatMutation = useMutation({
+    mutationFn: (payload) => adminApi.suspendUserChat(payload.userId, { reason: payload.reason }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      setConfirmAction(null);
+    },
+  });
+
+  const restoreChatMutation = useMutation({
+    mutationFn: (userId) => adminApi.restoreUserChat(userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      setConfirmAction(null);
+    },
+  });
+
+  const deleteUserMutation = useMutation({
+    mutationFn: (userId) => adminApi.deleteUser(userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
       setConfirmAction(null);
     },
   });
@@ -81,11 +126,115 @@ const AdminUsersPage = () => {
   };
 
   const confirmMutation =
-    confirmAction?.type === 'toggle-active'
-      ? () => toggleActiveMutation.mutate(confirmAction.userId)
-      : () => toggleAdminMutation.mutate(confirmAction.userId);
+    confirmAction?.type === 'block-user'
+      ? () => blockUserMutation.mutate(confirmAction.userId)
+      : confirmAction?.type === 'unblock-user'
+      ? () => unblockUserMutation.mutate(confirmAction.userId)
+        : confirmAction?.type === 'verify-email'
+          ? () => verifyEmailMutation.mutate(confirmAction.userId)
+          : confirmAction?.type === 'suspend-chat'
+            ? () => suspendChatMutation.mutate({ userId: confirmAction.userId, reason: 'Suspended from admin panel.' })
+            : confirmAction?.type === 'restore-chat'
+              ? () => restoreChatMutation.mutate(confirmAction.userId)
+          : confirmAction?.type === 'delete-user'
+            ? () => deleteUserMutation.mutate(confirmAction.userId)
+            : () => toggleAdminMutation.mutate(confirmAction.userId);
 
-  const isPending = toggleActiveMutation.isPending || toggleAdminMutation.isPending;
+  const isPending =
+    blockUserMutation.isPending ||
+    unblockUserMutation.isPending ||
+    toggleAdminMutation.isPending ||
+    verifyEmailMutation.isPending ||
+    suspendChatMutation.isPending ||
+    restoreChatMutation.isPending ||
+    deleteUserMutation.isPending;
+
+  const getAccountStatus = (user) => {
+    if (!user.isActive && !user.isEmailVerified) {
+      return {
+        label: 'Pending approval',
+        tone: 'text-amber-600 dark:text-amber-400',
+        dot: 'bg-amber-500'
+      };
+    }
+
+    if (!user.isActive) {
+      return {
+        label: 'Blocked',
+        tone: 'text-rose-500',
+        dot: 'bg-rose-500'
+      };
+    }
+
+    if (!user.isEmailVerified) {
+      return {
+        label: 'Awaiting verification',
+        tone: 'text-cyan-600 dark:text-cyan-400',
+        dot: 'bg-cyan-500'
+      };
+    }
+
+    return {
+      label: 'Active',
+      tone: 'text-emerald-600 dark:text-emerald-400',
+      dot: 'bg-emerald-500'
+    };
+  };
+
+  const confirmActionMeta = confirmAction
+    ? {
+        'block-user': {
+          title: 'Block User',
+          description: `Block ${confirmAction.userName} from signing in and using the platform.`,
+          icon: FiToggleRight,
+          toneClass: 'bg-rose-500/10 text-rose-500',
+          confirmLabel: 'Block'
+        },
+        'unblock-user': {
+          title: 'Unblock User',
+          description: `Restore access for ${confirmAction.userName}.`,
+          icon: FiToggleLeft,
+          toneClass: 'bg-emerald-500/10 text-emerald-600',
+          confirmLabel: 'Unblock'
+        },
+        'verify-email': {
+          title: 'Approve Account',
+          description: `Approve ${confirmAction.userName} so they can sign in.`,
+          icon: FiMail,
+          toneClass: 'bg-cyan-500/10 text-cyan-600',
+          confirmLabel: 'Approve'
+        },
+        'suspend-chat': {
+          title: 'Suspend Chat',
+          description: `Disable chat access for ${confirmAction.userName}.`,
+          icon: FiLock,
+          toneClass: 'bg-amber-500/10 text-amber-600',
+          confirmLabel: 'Suspend'
+        },
+        'restore-chat': {
+          title: 'Restore Chat',
+          description: `Re-enable chat access for ${confirmAction.userName}.`,
+          icon: FiLock,
+          toneClass: 'bg-emerald-500/10 text-emerald-600',
+          confirmLabel: 'Restore'
+        },
+        'delete-user': {
+          title: 'Delete User',
+          description: `Permanently delete ${confirmAction.userName} and remove their linked content.`,
+          icon: FiTrash2,
+          toneClass: 'bg-rose-500/10 text-rose-500',
+          confirmLabel: 'Delete'
+        },
+        'toggle-admin': {
+          title: 'Toggle Admin Role',
+          description: `Change the admin role for ${confirmAction.userName}.`,
+          icon: FiShield,
+          toneClass: 'bg-violet-500/10 text-violet-600',
+          confirmLabel: 'Confirm'
+        }
+      }[confirmAction.type]
+    : null;
+  const ConfirmActionIcon = confirmActionMeta?.icon;
 
   return (
     <div className="space-y-8">
@@ -229,10 +378,10 @@ const AdminUsersPage = () => {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-[rgb(var(--border))] bg-[rgb(var(--surface-soft))]">
-                      {['User', 'Email', 'Role', 'Status', 'Streak', 'Actions'].map((h, i) => (
+                      {['User', 'Email', 'Role', 'Account', 'Email Verified', 'Streak', 'Actions'].map((h, i) => (
                         <th
                           key={h}
-                          className={`px-5 py-3.5 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400 ${i === 5 ? 'text-right' : 'text-left'}`}
+                          className={`px-5 py-3.5 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400 ${i === 6 ? 'text-right' : 'text-left'}`}
                         >
                           {h}
                         </th>
@@ -242,7 +391,7 @@ const AdminUsersPage = () => {
                   <tbody className="divide-y divide-[rgb(var(--border))]">
                     {users.length === 0 ? (
                       <tr>
-                        <td colSpan={6} className="px-5 py-16 text-center text-slate-500 dark:text-slate-400">
+                        <td colSpan={7} className="px-5 py-16 text-center text-slate-500 dark:text-slate-400">
                           No users found{search ? ` matching "${search}"` : ''}.
                         </td>
                       </tr>
@@ -274,13 +423,20 @@ const AdminUsersPage = () => {
                               {u.role}
                             </span>
                           </td>
-                          {/* Status */}
+                          {/* Account */}
+                          <td className="px-5 py-4">
+                            <span className={`flex items-center gap-1.5 text-xs font-medium ${getAccountStatus(u).tone}`}>
+                              <span className={`h-2 w-2 rounded-full ${getAccountStatus(u).dot}`} />
+                              {getAccountStatus(u).label}
+                            </span>
+                          </td>
+                          {/* Email verified */}
                           <td className="px-5 py-4">
                             <span className={`flex items-center gap-1.5 text-xs font-medium ${
-                              u.isActive ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500'
+                              u.isEmailVerified ? 'text-cyan-600 dark:text-cyan-400' : 'text-amber-500'
                             }`}>
-                              <span className={`h-2 w-2 rounded-full ${u.isActive ? 'bg-emerald-500' : 'bg-rose-500'}`} />
-                              {u.isActive ? 'Active' : 'Inactive'}
+                              <span className={`h-2 w-2 rounded-full ${u.isEmailVerified ? 'bg-cyan-500' : 'bg-amber-500'}`} />
+                              {u.isEmailVerified ? 'Verified' : 'Pending'}
                             </span>
                           </td>
                           {/* Streak */}
@@ -292,18 +448,38 @@ const AdminUsersPage = () => {
                           </td>
                           {/* Actions */}
                           <td className="px-5 py-4 text-right">
-                            <div className="flex items-center justify-end gap-2">
+                            <div className="flex flex-wrap items-center justify-end gap-2">
                               <button
-                                onClick={() => handleAction('toggle-active', u._id, u.name)}
+                                onClick={() => handleAction(u.isActive ? 'block-user' : 'unblock-user', u._id, u.name)}
                                 className={`flex h-8 w-8 items-center justify-center rounded-xl border transition-all duration-200 hover:-translate-y-0.5 active:scale-95 ${
                                   u.isActive
                                     ? 'border-emerald-200 bg-emerald-500/10 text-emerald-600 hover:border-emerald-300 dark:border-emerald-700 dark:text-emerald-400'
                                     : 'border-[rgb(var(--border))] bg-[rgb(var(--bg-elevated))] text-slate-400 hover:border-cyan-400/30'
                                 }`}
-                                title={u.isActive ? 'Deactivate user' : 'Activate user'}
+                                title={u.isActive ? 'Block user' : 'Unblock user'}
                               >
                                 {u.isActive ? <FiToggleRight className="text-base" /> : <FiToggleLeft className="text-base" />}
                               </button>
+                              <button
+                                onClick={() => handleAction(u.chatEnabled === false ? 'restore-chat' : 'suspend-chat', u._id, u.name)}
+                                className={`flex h-8 w-8 items-center justify-center rounded-xl border transition-all duration-200 hover:-translate-y-0.5 active:scale-95 ${
+                                  u.chatEnabled === false
+                                    ? 'border-emerald-200 bg-emerald-500/10 text-emerald-600 hover:border-emerald-300 dark:border-emerald-700 dark:text-emerald-400'
+                                    : 'border-amber-200 bg-amber-500/10 text-amber-600 hover:border-amber-300 dark:border-amber-700 dark:text-amber-400'
+                                }`}
+                                title={u.chatEnabled === false ? 'Restore chat' : 'Suspend chat'}
+                              >
+                                <FiLock className="text-base" />
+                              </button>
+                              {!u.isEmailVerified && (
+                                <button
+                                  onClick={() => handleAction('verify-email', u._id, u.name)}
+                                  className="flex h-8 w-8 items-center justify-center rounded-xl border border-cyan-200 bg-cyan-500/10 text-cyan-600 transition-all duration-200 hover:-translate-y-0.5 hover:border-cyan-300 active:scale-95 dark:border-cyan-700 dark:text-cyan-400"
+                                  title={u.isActive ? 'Verify email' : 'Approve account'}
+                                >
+                                  <FiMail className="text-base" />
+                                </button>
+                              )}
                               <button
                                 onClick={() => handleAction('toggle-admin', u._id, u.name)}
                                 className={`flex h-8 w-8 items-center justify-center rounded-xl border transition-all duration-200 hover:-translate-y-0.5 active:scale-95 ${
@@ -314,6 +490,13 @@ const AdminUsersPage = () => {
                                 title={u.role === 'admin' ? 'Remove admin' : 'Make admin'}
                               >
                                 <FiShield className="text-base" />
+                              </button>
+                              <button
+                                onClick={() => handleAction('delete-user', u._id, u.name)}
+                                className="flex h-8 w-8 items-center justify-center rounded-xl border border-rose-200 bg-rose-500/10 text-rose-500 transition-all duration-200 hover:-translate-y-0.5 hover:border-rose-300 active:scale-95 dark:border-rose-700"
+                                title="Delete user"
+                              >
+                                <FiTrash2 className="text-base" />
                               </button>
                             </div>
                           </td>
@@ -358,27 +541,53 @@ const AdminUsersPage = () => {
                     </div>
 
                     {/* Bottom row */}
-                    <div className="mt-3 flex items-center justify-between">
-                      <div className="flex items-center gap-3 text-xs">
-                        <span className={`flex items-center gap-1.5 font-medium ${u.isActive ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500'}`}>
-                          <span className={`h-2 w-2 rounded-full ${u.isActive ? 'bg-emerald-500' : 'bg-rose-500'}`} />
-                          {u.isActive ? 'Active' : 'Inactive'}
+                    <div className="mt-3 flex items-start justify-between gap-3">
+                      <div className="flex flex-wrap items-center gap-2 text-xs">
+                        <span className={`flex items-center gap-1.5 font-medium ${getAccountStatus(u).tone}`}>
+                          <span className={`h-2 w-2 rounded-full ${getAccountStatus(u).dot}`} />
+                          {getAccountStatus(u).label}
+                        </span>
+                        <span className="text-slate-400">·</span>
+                        <span className={`flex items-center gap-1.5 font-medium ${u.isEmailVerified ? 'text-cyan-600 dark:text-cyan-400' : 'text-amber-500'}`}>
+                          <span className={`h-2 w-2 rounded-full ${u.isEmailVerified ? 'bg-cyan-500' : 'bg-amber-500'}`} />
+                          {u.isEmailVerified ? 'Email verified' : 'Email pending'}
                         </span>
                         <span className="text-slate-400">·</span>
                         <span className="text-slate-500 dark:text-slate-400">{u.dailyStreak || 0} day streak</span>
                       </div>
                       {/* Action buttons */}
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center justify-end gap-2">
                         <button
-                          onClick={() => handleAction('toggle-active', u._id, u.name)}
+                          onClick={() => handleAction(u.isActive ? 'block-user' : 'unblock-user', u._id, u.name)}
                           className={`flex h-8 w-8 items-center justify-center rounded-xl border transition-all active:scale-95 ${
                             u.isActive
                               ? 'border-emerald-200 bg-emerald-500/10 text-emerald-600 dark:border-emerald-700 dark:text-emerald-400'
                               : 'border-[rgb(var(--border))] bg-[rgb(var(--bg-elevated))] text-slate-400'
                           }`}
+                          title={u.isActive ? 'Block user' : 'Unblock user'}
                         >
                           {u.isActive ? <FiToggleRight /> : <FiToggleLeft />}
                         </button>
+                        <button
+                          onClick={() => handleAction(u.chatEnabled === false ? 'restore-chat' : 'suspend-chat', u._id, u.name)}
+                          className={`flex h-8 w-8 items-center justify-center rounded-xl border transition-all active:scale-95 ${
+                            u.chatEnabled === false
+                              ? 'border-emerald-200 bg-emerald-500/10 text-emerald-600 dark:border-emerald-700 dark:text-emerald-400'
+                              : 'border-amber-200 bg-amber-500/10 text-amber-600 dark:border-amber-700 dark:text-amber-400'
+                          }`}
+                          title={u.chatEnabled === false ? 'Restore chat' : 'Suspend chat'}
+                        >
+                          <FiLock />
+                        </button>
+                        {!u.isEmailVerified && (
+                          <button
+                            onClick={() => handleAction('verify-email', u._id, u.name)}
+                            className="flex h-8 w-8 items-center justify-center rounded-xl border border-cyan-200 bg-cyan-500/10 text-cyan-600 transition-all active:scale-95 dark:border-cyan-700 dark:text-cyan-400"
+                            title={u.isActive ? 'Verify email' : 'Approve account'}
+                          >
+                            <FiMail />
+                          </button>
+                        )}
                         <button
                           onClick={() => handleAction('toggle-admin', u._id, u.name)}
                           className={`flex h-8 w-8 items-center justify-center rounded-xl border transition-all active:scale-95 ${
@@ -386,8 +595,16 @@ const AdminUsersPage = () => {
                               ? 'border-violet-200 bg-violet-500/10 text-violet-600 dark:border-violet-700 dark:text-violet-400'
                               : 'border-[rgb(var(--border))] bg-[rgb(var(--bg-elevated))] text-slate-400'
                           }`}
+                          title={u.role === 'admin' ? 'Remove admin' : 'Make admin'}
                         >
                           <FiShield />
+                        </button>
+                        <button
+                          onClick={() => handleAction('delete-user', u._id, u.name)}
+                          className="flex h-8 w-8 items-center justify-center rounded-xl border border-rose-200 bg-rose-500/10 text-rose-500 transition-all active:scale-95 dark:border-rose-700"
+                          title="Delete user"
+                        >
+                          <FiTrash2 />
                         </button>
                       </div>
                     </div>
@@ -461,21 +678,16 @@ const AdminUsersPage = () => {
               transition={{ duration: 0.22 }}
               className="fixed inset-x-4 top-1/2 z-50 mx-auto max-w-sm -translate-y-1/2 overflow-hidden rounded-3xl border border-[rgb(var(--border))] bg-[rgb(var(--bg-elevated))] p-6 shadow-2xl sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 sm:w-full"
             >
-              <div className={`flex h-14 w-14 mx-auto items-center justify-center rounded-2xl ${
-                confirmAction.type === 'toggle-active' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-violet-500/10 text-violet-600'
-              }`}>
-                {confirmAction.type === 'toggle-active' ? <FiToggleRight className="text-2xl" /> : <FiShield className="text-2xl" />}
+              <div className={`flex h-14 w-14 mx-auto items-center justify-center rounded-2xl ${confirmActionMeta?.toneClass || 'bg-violet-500/10 text-violet-600'}`}>
+                {ConfirmActionIcon ? <ConfirmActionIcon className="text-2xl" /> : <FiShield className="text-2xl" />}
               </div>
 
               <div className="mt-4 text-center">
                 <h3 className="font-display text-xl font-semibold text-slate-950 dark:text-white">
-                  {confirmAction.type === 'toggle-active' ? 'Toggle User Status' : 'Toggle Admin Role'}
+                  {confirmActionMeta?.title || 'Confirm Action'}
                 </h3>
                 <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-                  {confirmAction.type === 'toggle-active'
-                    ? `Change the active status for `
-                    : `Change the admin role for `}
-                  <span className="font-semibold text-slate-950 dark:text-white">{confirmAction.userName}</span>?
+                  {confirmActionMeta?.description || 'Are you sure you want to continue?'}
                 </p>
               </div>
 
@@ -497,7 +709,7 @@ const AdminUsersPage = () => {
                       Applying...
                     </span>
                   ) : (
-                    <><FiCheck /> Confirm</>
+                    <><FiCheck /> {confirmActionMeta?.confirmLabel || 'Confirm'}</>
                   )}
                 </button>
               </div>
@@ -602,23 +814,22 @@ const AdminUsersPage = () => {
                   </div>
                 </div>
 
-                {/* Toggles */}
-                <div className="flex items-center justify-between gap-4 rounded-xl border border-[rgb(var(--border))] bg-[rgb(var(--surface))] px-4 py-3">
-                  <div>
-                    <p className="text-sm font-medium text-slate-950 dark:text-white">Admin role</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">Grant admin privileges</p>
+                <div>
+                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Role</label>
+                  <div className="relative">
+                    <FiShield className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <select
+                      value={form.role}
+                      onChange={(e) => setForm({ ...form, role: e.target.value })}
+                      className="input-shell pl-11"
+                    >
+                      <option value="guest">Guest</option>
+                      <option value="user">User</option>
+                      <option value="writer">Writer</option>
+                      <option value="moderator">Moderator</option>
+                      <option value="admin">Admin</option>
+                    </select>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setForm({ ...form, role: form.role === 'admin' ? 'user' : 'admin' })}
-                    className={`flex h-8 w-8 items-center justify-center rounded-xl border transition-all ${
-                      form.role === 'admin'
-                        ? 'border-violet-200 bg-violet-500/10 text-violet-600 dark:border-violet-700 dark:text-violet-400'
-                        : 'border-[rgb(var(--border))] bg-[rgb(var(--bg-elevated))] text-slate-400'
-                    }`}
-                  >
-                    <FiShield />
-                  </button>
                 </div>
 
                 <div className="flex items-center justify-between gap-4 rounded-xl border border-[rgb(var(--border))] bg-[rgb(var(--surface))] px-4 py-3">

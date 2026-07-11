@@ -21,6 +21,8 @@ export const updateSettings = async (payload) => {
   if (payload.contactEmail !== undefined) settings.contactEmail = payload.contactEmail;
   if (payload.customFooterText !== undefined) settings.customFooterText = payload.customFooterText;
   if (payload.allowRegistration !== undefined) settings.allowRegistration = payload.allowRegistration;
+  if (payload.allowTimelineDelete !== undefined) settings.allowTimelineDelete = payload.allowTimelineDelete;
+  if (payload.allowTimelineEdit !== undefined) settings.allowTimelineEdit = payload.allowTimelineEdit;
   if (payload.landingPageContent !== undefined) {
     settings.landingPageContent = payload.landingPageContent;
     settings.markModified('landingPageContent');

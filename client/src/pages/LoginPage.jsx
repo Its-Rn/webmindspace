@@ -14,6 +14,7 @@ export const LoginPage = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const submitting = useRef(false);
+  const notice = location.state?.notice;
 
   const {
     register,
@@ -26,7 +27,7 @@ export const LoginPage = () => {
   const loginMutation = useMutation({
     mutationFn: authService.login,
     onSuccess: async (response) => {
-      queryClient.removeQueries({ queryKey: ['workspace-user'] });
+      queryClient.invalidateQueries({ queryKey: ['workspace-user'] });
       toast.success(response?.message || 'Signed in successfully.');
       const nextPath = location.state?.from?.pathname || '/dashboard';
       navigate(nextPath, { replace: true });
@@ -70,6 +71,12 @@ export const LoginPage = () => {
               Sign in to your workspace to continue.
             </p>
           </div>
+
+          {notice && (
+            <div className="mb-6 rounded-2xl border border-cyan-500/20 bg-cyan-500/10 px-4 py-3 text-sm text-cyan-700 dark:text-cyan-300">
+              {notice}
+            </div>
+          )}
 
           {/* Form */}
           <form className="space-y-5" onSubmit={handleSubmit(onSubmit)} noValidate>

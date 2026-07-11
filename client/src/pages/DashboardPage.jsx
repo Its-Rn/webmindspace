@@ -1,7 +1,7 @@
-import { useMemo, useState } from 'react';
-import { motion } from 'framer-motion';
+import { useMemo, useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate, useOutletContext } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   FiActivity,
   FiArrowUpRight,
@@ -15,13 +15,16 @@ import {
   FiMessageSquare,
   FiPlus,
   FiSearch,
+  FiShare2,
   FiStar,
   FiTrendingUp,
   FiUsers,
+  FiX,
   FiZap
 } from 'react-icons/fi';
 
 import { dashboardService } from '../services/dashboard';
+import { shareService } from '../services/share';
 
 const upcomingTasks = [
   {
@@ -90,6 +93,14 @@ const staticNotifications = [
 ];
 
 const quickActions = [
+  {
+    id: 'data-share',
+    label: 'Data Sharing',
+    phase: 'New',
+    description: 'Share your timeline, notes, or blogs with other users.',
+    icon: FiShare2,
+    accent: 'from-purple-400 to-pink-500'
+  },
   {
     id: 'new-task',
     label: 'New task',
@@ -293,6 +304,97 @@ export const DashboardPage = () => {
     { label: 'Publishing', value: dashboardMetrics?.momentum?.publishing ?? Math.min(100, blogsPublished * 20 + notesCreated * 8), icon: FiBarChart2 },
     { label: 'Collaboration', value: dashboardMetrics?.momentum?.collaboration ?? Math.min(100, messagesSent * 3 + timelinePosts * 6), icon: FiUsers }
   ];
+
+  const queryClient = useQueryClient();
+
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [showIncomingModal, setShowIncomingModal] = useState(false);
+  const [showSharedViewModal, setShowSharedViewModal] = useState(false);
+  const [selectedShareTarget, setSelectedShareTarget] = useState('');
+  const [selectedContentTypes, setSelectedContentTypes] = useState([]);
+  const [viewingShare, setViewingShare] = useState(null);
+  const [shareError, setShareError] = useState('');
+
+  const usersQuery = useQuery({
+    queryKey: ['share-users'],
+    queryFn: shareService.getUsers,
+    enabled: showShareModal
+  });
+
+  const outgoingSharesQuery = useQuery({
+    queryKey: ['outgoing-shares'],
+    queryFn: shareService.getOutgoingShares
+  });
+
+  const incomingSharesQuery = useQuery({
+    queryKey: ['incoming-shares'],
+    queryFn: shareService.getIncomingShares
+  });
+
+  const sharedViewQuery = useQuery({
+    queryKey: ['shared-view', viewingShare?.owner?._id, viewingShare?.contentType],
+    queryFn: () => shareService.viewSharedData(viewingShare?.owner?._id, viewingShare?.contentType),
+    enabled: !!viewingShare?.owner?._id && !!viewingShare?.contentType
+  });
+
+  const shareMutation = useMutation({
+    mutationFn: async ({ targetUserId, contentTypes }) => {
+      return shareService.createShares(targetUserId, contentTypes);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['outgoing-shares'] });
+      queryClient.invalidateQueries({ queryKey: ['incoming-shares'] });
+      setShowShareModal(false);
+      setSelectedShareTarget('');
+      setSelectedContentTypes([]);
+      setShareError('');
+    },
+    onError: (error) => {
+      setShareError(error?.response?.data?.message || 'Unable to share data right now.');
+    }
+  });
+
+  const stopShareMutation = useMutation({
+    mutationFn: ({ targetUserId, contentType }) => shareService.stopShare(targetUserId, contentType),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['outgoing-shares'] });
+    }
+  });
+
+  const shareSelectRef = useRef(null);
+
+  const closeShareModal = () => {
+    setShowShareModal(false);
+    setSelectedShareTarget('');
+    setSelectedContentTypes([]);
+    setShareError('');
+  };
+
+  const handleShare = () => {
+    const targetUserId = shareSelectRef.current?.value || selectedShareTarget;
+    if (!targetUserId || selectedContentTypes.length === 0) return;
+    setShareError('');
+    shareMutation.mutate({ targetUserId, contentTypes: selectedContentTypes });
+  };
+
+  const toggleContentType = (ct) => {
+    setSelectedContentTypes((prev) =>
+      prev.includes(ct) ? prev.filter((t) => t !== ct) : [...prev, ct]
+    );
+  };
+
+  const users = usersQuery.data?.data?.users || [];
+  const outgoingShares = outgoingSharesQuery.data?.data?.shares || [];
+  const incomingShares = incomingSharesQuery.data?.data?.shares || [];
+  const sharedViewData = sharedViewQuery.data?.data?.items || [];
+
+  const contentTypeLabels = {
+    timeline: 'Timeline Posts',
+    notes: 'Notes',
+    blog: 'Blog Posts'
+  };
+
+  const contentTypeList = ['timeline', 'notes', 'blog'];
 
   return (
     <div className="space-y-6">
@@ -588,7 +690,8 @@ export const DashboardPage = () => {
                     key={action.id}
                     type="button"
                     onClick={() => {
-                      if (action.id === 'draft-blog') navigate('/blog/new');
+                      if (action.id === 'data-share') setShowShareModal(true);
+                      else if (action.id === 'draft-blog') navigate('/blog/new');
                       else if (action.id === 'new-task') navigate('/tasks');
                       else if (action.id === 'review-calendar') navigate('/calendar');
                       else if (action.id === 'open-chat') navigate('/chat');
@@ -618,6 +721,75 @@ export const DashboardPage = () => {
               })}
             </div>
           </motion.section>
+
+          {outgoingShares.length > 0 && (
+            <motion.section
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.4 }}
+              transition={{ duration: 0.6, delay: 0.12 }}
+              className="surface-card p-6"
+            >
+              <div className="flex items-center gap-2 text-sm font-semibold text-slate-950 dark:text-white">
+                <FiShare2 className="text-purple-500" />
+                Your shared data
+              </div>
+              <div className="mt-4 space-y-3">
+                {outgoingShares.map((share) => (
+                  <div key={share.id} className="rounded-2xl bg-[rgb(var(--bg-elevated))] p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="font-medium text-slate-950 dark:text-white">{share.targetUser?.name || 'Unknown'}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">{contentTypeLabels[share.contentType]}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => share.targetUser?._id && stopShareMutation.mutate({ targetUserId: share.targetUser._id, contentType: share.contentType })}
+                        disabled={!share.targetUser?._id}
+                        className="text-xs text-red-400 hover:text-red-500 transition-colors"
+                      >
+                        Stop sharing
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.section>
+          )}
+
+          {incomingShares.length > 0 && (
+            <motion.section
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.4 }}
+              transition={{ duration: 0.6, delay: 0.14 }}
+              className="surface-card p-6"
+            >
+              <div className="flex items-center gap-2 text-sm font-semibold text-slate-950 dark:text-white">
+                <FiUsers className="text-cyan-500" />
+                Shared with me
+              </div>
+              <div className="mt-4 space-y-3">
+                {incomingShares.map((share) => (
+                  <div key={share.id} className="rounded-2xl bg-[rgb(var(--bg-elevated))] p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="font-medium text-slate-950 dark:text-white">{share.owner?.name || 'Unknown'}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">{contentTypeLabels[share.contentType]}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => { setViewingShare(share); setShowSharedViewModal(true); }}
+                        className="text-xs text-cyan-500 hover:text-cyan-400 transition-colors"
+                      >
+                        View
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.section>
+          )}
 
           <motion.section
             initial={{ opacity: 0, y: 24 }}
@@ -713,6 +885,156 @@ export const DashboardPage = () => {
           })}
         </div>
       </motion.section>
+
+      <AnimatePresence>
+        {showShareModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+            onClick={closeShareModal}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="surface-card w-full max-w-lg rounded-2xl p-6 shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="font-display text-lg font-semibold text-slate-950 dark:text-white">Share your data</h3>
+                <button
+                  type="button"
+                  onClick={closeShareModal}
+                  className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                >
+                  <FiX />
+                </button>
+              </div>
+
+              {shareError && (
+                <div className="mb-4 rounded-2xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-500">
+                  {shareError}
+                </div>
+              )}
+
+              <label className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400 mb-2 block">Select user</label>
+              <select
+                ref={shareSelectRef}
+                value={selectedShareTarget}
+                onChange={(e) => setSelectedShareTarget(e.target.value)}
+                className="input-shell w-full mb-5"
+              >
+                <option value="">Choose a user...</option>
+                {users.map((u) => (
+                  <option key={u._id} value={u._id}>{u.name} ({u.email})</option>
+                ))}
+              </select>
+
+              <label className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400 mb-2 block">Select data to share</label>
+              <div className="space-y-3 mb-6">
+                {contentTypeList.map((ct) => (
+                  <label key={ct} className="flex items-center gap-3 cursor-pointer rounded-2xl bg-[rgb(var(--bg-elevated))] p-4 hover:bg-[rgb(var(--surface-soft))] transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={selectedContentTypes.includes(ct)}
+                      onChange={() => toggleContentType(ct)}
+                      className="h-4 w-4 accent-cyan-500"
+                    />
+                    <span className="text-sm font-medium text-slate-950 dark:text-white">{contentTypeLabels[ct]}</span>
+                  </label>
+                ))}
+              </div>
+
+              <button
+                type="button"
+                onClick={handleShare}
+                disabled={!selectedShareTarget || selectedContentTypes.length === 0 || shareMutation.isPending}
+                className="primary-button w-full"
+              >
+                {shareMutation.isPending ? 'Sharing...' : `Share with ${selectedContentTypes.length} type${selectedContentTypes.length > 1 ? 's' : ''}`}
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showSharedViewModal && viewingShare && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+            onClick={() => { setShowSharedViewModal(false); setViewingShare(null); }}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="surface-card w-full max-w-2xl max-h-[80vh] rounded-2xl p-6 shadow-2xl overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="font-display text-lg font-semibold text-slate-950 dark:text-white">
+                    {viewingShare.owner?.name}'s {contentTypeLabels[viewingShare.contentType]}
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Shared with you</p>
+                </div>
+                <button type="button" onClick={() => { setShowSharedViewModal(false); setViewingShare(null); }} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                  <FiX />
+                </button>
+              </div>
+
+              {sharedViewQuery.isLoading ? (
+                <div className="flex justify-center py-8">
+                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-cyan-400 border-t-transparent" />
+                </div>
+              ) : sharedViewData.length === 0 ? (
+                <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-8">No data shared yet.</p>
+              ) : viewingShare.contentType === 'timeline' ? (
+                <div className="space-y-4">
+                  {sharedViewData.map((item) => (
+                    <div key={item.id} className="rounded-2xl bg-[rgb(var(--bg-elevated))] p-4 border-l-4 border-cyan-400">
+                      <p className="text-sm text-slate-600 dark:text-slate-300 whitespace-pre-wrap">{item.content}</p>
+                      <div className="mt-2 flex items-center gap-3">
+                        <span className="text-xs text-slate-400">By {viewingShare.owner?.name}</span>
+                        {item.createdAt && <span className="text-xs text-slate-400">{new Date(item.createdAt).toLocaleDateString()}</span>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : viewingShare.contentType === 'notes' ? (
+                <div className="space-y-4">
+                  {sharedViewData.map((item) => (
+                    <div key={item._id} className="rounded-2xl bg-[rgb(var(--bg-elevated))] p-4 border-l-4 border-violet-400">
+                      <h4 className="font-medium text-slate-950 dark:text-white">{item.title}</h4>
+                      <p className="mt-1 text-sm text-slate-600 dark:text-slate-300 line-clamp-3 whitespace-pre-wrap">{item.content}</p>
+                      <div className="mt-2 flex items-center gap-3">
+                        <span className="text-xs text-slate-400">By {viewingShare.owner?.name}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {sharedViewData.map((item) => (
+                    <div key={item.id} className="rounded-2xl bg-[rgb(var(--bg-elevated))] p-4 border-l-4 border-amber-400">
+                      <h4 className="font-medium text-slate-950 dark:text-white">{item.title}</h4>
+                      <p className="mt-1 text-sm text-slate-600 dark:text-slate-300 line-clamp-2">{item.excerpt || item.content?.slice(0, 200)}</p>
+                      <div className="mt-2 flex items-center gap-3">
+                        <span className="text-xs text-slate-400">By {viewingShare.owner?.name}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

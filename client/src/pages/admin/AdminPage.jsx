@@ -79,6 +79,7 @@ const AdminPage = () => {
   const statCards = [
     { label: 'Total Users',     value: stats.counts.users,         icon: FiUsers,        color: 'from-cyan-400 to-blue-500',      bg: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400' },
     { label: 'Active (7d)',     value: stats.counts.activeUsers,   icon: FiActivity,     color: 'from-emerald-400 to-teal-500',   bg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' },
+    { label: 'Pending Approvals', value: stats.counts.pendingApprovals, icon: FiShield, color: 'from-amber-400 to-orange-500', bg: 'bg-amber-500/10 text-amber-600 dark:text-amber-400' },
     { label: 'Blog Posts',      value: stats.counts.posts,         icon: FiBookOpen,     color: 'from-amber-400 to-orange-500',   bg: 'bg-amber-500/10 text-amber-600 dark:text-amber-400' },
     { label: 'Timeline Posts',  value: stats.counts.timelinePosts, icon: FiClock,        color: 'from-violet-400 to-purple-500',  bg: 'bg-violet-500/10 text-violet-600 dark:text-violet-400' },
     { label: 'Tasks',           value: stats.counts.tasks,         icon: FiCheckCircle,  color: 'from-sky-400 to-cyan-500',       bg: 'bg-sky-500/10 text-sky-600 dark:text-sky-400' },
@@ -94,6 +95,21 @@ const AdminPage = () => {
     { label: 'Notes Created',   value: stats.totals.totalNotesCreated,    icon: FiFileText,      accent: 'from-violet-400 to-fuchsia-500' },
     { label: 'Messages Sent',   value: stats.totals.totalMessagesSent,    icon: FiMessageSquare, accent: 'from-emerald-400 to-teal-500' },
   ];
+  const getUserStatus = (user) => {
+    if (!user.isActive && !user.isEmailVerified) {
+      return { label: 'Pending approval', tone: 'text-amber-600 dark:text-amber-400', dot: 'bg-amber-500' };
+    }
+
+    if (!user.isActive) {
+      return { label: 'Blocked', tone: 'text-rose-500', dot: 'bg-rose-500' };
+    }
+
+    if (!user.isEmailVerified) {
+      return { label: 'Awaiting verification', tone: 'text-cyan-600 dark:text-cyan-400', dot: 'bg-cyan-500' };
+    }
+
+    return { label: 'Active', tone: 'text-emerald-600 dark:text-emerald-400', dot: 'bg-emerald-500' };
+  };
 
   return (
     <div className="space-y-8">
@@ -277,11 +293,9 @@ const AdminPage = () => {
                       </span>
                     </td>
                     <td className="px-5 py-4">
-                      <span className={`flex items-center gap-1.5 text-xs font-medium ${
-                        u.isActive ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'
-                      }`}>
-                        <span className={`h-2 w-2 rounded-full ${u.isActive ? 'bg-emerald-500' : 'bg-slate-400'}`} />
-                        {u.isActive ? 'Active' : 'Inactive'}
+                      <span className={`flex items-center gap-1.5 text-xs font-medium ${getUserStatus(u).tone}`}>
+                        <span className={`h-2 w-2 rounded-full ${getUserStatus(u).dot}`} />
+                        {getUserStatus(u).label}
                       </span>
                     </td>
                     <td className="px-5 py-4 text-slate-500 dark:text-slate-400">
@@ -315,9 +329,9 @@ const AdminPage = () => {
                 </span>
               </div>
               <div className="mt-3 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-                <span className={`flex items-center gap-1.5 font-medium ${u.isActive ? 'text-emerald-600 dark:text-emerald-400' : ''}`}>
-                  <span className={`h-2 w-2 rounded-full ${u.isActive ? 'bg-emerald-500' : 'bg-slate-400'}`} />
-                  {u.isActive ? 'Active' : 'Inactive'}
+                <span className={`flex items-center gap-1.5 font-medium ${getUserStatus(u).tone}`}>
+                  <span className={`h-2 w-2 rounded-full ${getUserStatus(u).dot}`} />
+                  {getUserStatus(u).label}
                 </span>
                 <span>Joined {new Date(u.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
               </div>

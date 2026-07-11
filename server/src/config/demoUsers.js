@@ -1,6 +1,7 @@
 export const demoUsers = [
   {
     name: 'Kunal',
+    username: 'kunal.admin',
     email: 'kunal@gmail.com',
     password: '2212Aryan@3',
     role: 'admin',
@@ -16,6 +17,7 @@ export const demoUsers = [
   },
   {
     name: 'Aryan',
+    username: 'aryan.user',
     email: 'Aryan@gmail.com',
     password: '0902@Aryan3',
     role: 'user',

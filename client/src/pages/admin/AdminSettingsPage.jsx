@@ -13,6 +13,7 @@ import {
   FiMail,
   FiSave,
   FiSettings,
+  FiTrash2,
   FiType,
   FiUnlock,
   FiZap
@@ -51,6 +52,8 @@ const defaultForm = {
   contactEmail: '',
   customFooterText: '',
   allowRegistration: true,
+  allowTimelineDelete: false,
+  allowTimelineEdit: false,
   landingPageContent: {
     heroTitle: '',
     heroSubtitle: '',
@@ -100,6 +103,8 @@ const AdminSettingsPage = () => {
         contactEmail: settings.contactEmail || '',
         customFooterText: settings.customFooterText || '',
         allowRegistration: settings.allowRegistration ?? true,
+        allowTimelineDelete: settings.allowTimelineDelete ?? false,
+        allowTimelineEdit: settings.allowTimelineEdit ?? false,
         landingPageContent: {
           heroTitle: lpc.heroTitle || '',
           heroSubtitle: lpc.heroSubtitle || '',
@@ -131,8 +136,40 @@ const AdminSettingsPage = () => {
     mutationFn: settingsService.updateSettings,
     onSuccess: async (res) => {
       const msg = res?.message || 'Site settings updated successfully.';
+      const savedSettings = res?.data?.settings;
       toast.success(msg);
+      if (savedSettings) {
+        const savedBrief = {
+          success: true,
+          data: {
+            siteName: savedSettings.siteName,
+            siteLogoText: savedSettings.siteLogoText,
+            siteTagline: savedSettings.siteTagline,
+            allowTimelineDelete: savedSettings.allowTimelineDelete,
+            allowTimelineEdit: savedSettings.allowTimelineEdit
+          }
+        };
+        queryClient.setQueryData(['site-settings'], {
+          success: true,
+          data: { settings: savedSettings }
+        });
+        queryClient.setQueryData(['site-settings-brief'], savedBrief);
+        setForm({
+          siteName: savedSettings.siteName || '',
+          siteLogoText: savedSettings.siteLogoText || '',
+          siteTagline: savedSettings.siteTagline || '',
+          contactEmail: savedSettings.contactEmail || '',
+          customFooterText: savedSettings.customFooterText || '',
+          allowRegistration: savedSettings.allowRegistration ?? true,
+          allowTimelineDelete: savedSettings.allowTimelineDelete ?? false,
+          allowTimelineEdit: savedSettings.allowTimelineEdit ?? false,
+          landingPageContent: {
+            ...form.landingPageContent
+          }
+        });
+      }
       await queryClient.invalidateQueries({ queryKey: ['site-settings'] });
+      await queryClient.invalidateQueries({ queryKey: ['site-settings-brief'] });
       setDirty(false);
     },
     onError: (error) => {
@@ -185,6 +222,8 @@ const AdminSettingsPage = () => {
         contactEmail: settings.contactEmail || '',
         customFooterText: settings.customFooterText || '',
         allowRegistration: settings.allowRegistration ?? true,
+        allowTimelineDelete: settings.allowTimelineDelete ?? false,
+        allowTimelineEdit: settings.allowTimelineEdit ?? false,
         landingPageContent: {
           heroTitle: lpc.heroTitle || '',
           heroSubtitle: lpc.heroSubtitle || '',
@@ -613,6 +652,96 @@ const AdminSettingsPage = () => {
                   </p>
                 </div>
               )}
+            </div>
+
+            {/* Timeline Delete Permission toggle */}
+            <div className="surface-card p-6">
+              <div className="mb-5 flex items-center gap-3">
+                <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${form.allowTimelineDelete ? 'bg-amber-500/10 text-amber-500' : 'bg-slate-500/10 text-slate-500'}`}>
+                  <FiTrash2 />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Timeline</p>
+                  <h2 className="font-display text-lg font-semibold text-slate-950 dark:text-white">Delete Permission</h2>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => handleChange('allowTimelineDelete', !form.allowTimelineDelete)}
+                className={`group relative flex w-full items-center justify-between gap-4 rounded-2xl border p-4 text-left transition-all duration-200 ${
+                  form.allowTimelineDelete
+                    ? 'border-amber-400/40 bg-amber-500/5 hover:bg-amber-500/10'
+                    : 'border-slate-400/30 bg-slate-500/5 hover:bg-slate-500/10'
+                }`}
+              >
+                <div>
+                  <p className="font-semibold text-slate-950 dark:text-white">
+                    {form.allowTimelineDelete ? 'Users can delete posts' : 'Delete disabled'}
+                  </p>
+                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                    {form.allowTimelineDelete
+                      ? 'All users may delete their own timeline posts.'
+                      : 'Only admins can delete timeline posts.'}
+                  </p>
+                </div>
+                <div
+                  className={`relative h-6 w-11 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-200 ${
+                    form.allowTimelineDelete ? 'bg-amber-500' : 'bg-slate-300 dark:bg-slate-600'
+                  }`}
+                >
+                  <span
+                    className={`absolute top-0.5 left-0.5 h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform duration-200 ${
+                      form.allowTimelineDelete ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
+                </div>
+              </button>
+            </div>
+
+            {/* Timeline Edit Permission toggle */}
+            <div className="surface-card p-6">
+              <div className="mb-5 flex items-center gap-3">
+                <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${form.allowTimelineEdit ? 'bg-purple-500/10 text-purple-500' : 'bg-slate-500/10 text-slate-500'}`}>
+                  <FiEdit3 />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Timeline</p>
+                  <h2 className="font-display text-lg font-semibold text-slate-950 dark:text-white">Edit Permission</h2>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => handleChange('allowTimelineEdit', !form.allowTimelineEdit)}
+                className={`group relative flex w-full items-center justify-between gap-4 rounded-2xl border p-4 text-left transition-all duration-200 ${
+                  form.allowTimelineEdit
+                    ? 'border-purple-400/40 bg-purple-500/5 hover:bg-purple-500/10'
+                    : 'border-slate-400/30 bg-slate-500/5 hover:bg-slate-500/10'
+                }`}
+              >
+                <div>
+                  <p className="font-semibold text-slate-950 dark:text-white">
+                    {form.allowTimelineEdit ? 'Users can edit posts' : 'Edit disabled'}
+                  </p>
+                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                    {form.allowTimelineEdit
+                      ? 'All users may edit their own timeline posts.'
+                      : 'Only admins can edit timeline posts.'}
+                  </p>
+                </div>
+                <div
+                  className={`relative h-6 w-11 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-200 ${
+                    form.allowTimelineEdit ? 'bg-purple-500' : 'bg-slate-300 dark:bg-slate-600'
+                  }`}
+                >
+                  <span
+                    className={`absolute top-0.5 left-0.5 h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform duration-200 ${
+                      form.allowTimelineEdit ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
+                </div>
+              </button>
             </div>
 
             {/* Status + Save actions */}

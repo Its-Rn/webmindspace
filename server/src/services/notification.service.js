@@ -1,10 +1,14 @@
 import Notification from '../models/Notification.js';
 import { triggerEvent } from '../config/pusher.js';
+import { emitToUser } from '../config/socket.js';
 
-export const createNotification = async (recipientId, type, title, message = '', link = '', relatedId = null) => {
+export const createNotification = async (recipientId, type, title, message = '', link = '', relatedId = null, meta = {}) => {
   const notification = await Notification.create({
     recipient: recipientId,
     type,
+    senderName: meta.senderName || '',
+    contentTitle: meta.contentTitle || '',
+    contentType: meta.contentType || '',
     title,
     message,
     link,
@@ -14,6 +18,7 @@ export const createNotification = async (recipientId, type, title, message = '',
   const payload = notification.toObject();
 
   triggerEvent(`private-user-${recipientId.toString()}`, 'notification:new', payload);
+  emitToUser(recipientId.toString(), 'notification:new', payload);
 
   return payload;
 };

@@ -17,7 +17,9 @@ export const getSettingsBrief = asyncHandler(async (req, res) => {
     data: {
       siteName: settings.siteName,
       siteLogoText: settings.siteLogoText,
-      siteTagline: settings.siteTagline
+      siteTagline: settings.siteTagline,
+      allowTimelineDelete: settings.allowTimelineDelete,
+      allowTimelineEdit: settings.allowTimelineEdit
     }
   });
 });

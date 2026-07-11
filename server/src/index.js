@@ -4,9 +4,11 @@ import { connectDatabase, disconnectDatabase } from './config/database.js';
 import { seedIfEmpty } from './config/bootstrap.js';
 import { appEnv } from './config/env.js';
 import { ensureStorageDirectories } from './config/storage.js';
+import { initSocketServer } from './config/socket.js';
 
 const app = createApp();
 const server = http.createServer(app);
+initSocketServer(server, appEnv.nodeEnv === 'production' ? appEnv.clientUrl : true);
 
 const shutdown = async (reason, error = null) => {
   if (error) {

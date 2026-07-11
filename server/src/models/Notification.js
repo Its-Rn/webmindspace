@@ -12,8 +12,26 @@ const notificationSchema = new Schema(
     },
     type: {
       type: String,
-      enum: ['chat', 'blog_comment', 'task_reminder', 'system'],
+      enum: ['chat', 'share', 'blog_comment', 'task_reminder', 'system'],
       required: true
+    },
+    senderName: {
+      type: String,
+      default: '',
+      trim: true,
+      maxlength: 120
+    },
+    contentTitle: {
+      type: String,
+      default: '',
+      trim: true,
+      maxlength: 200
+    },
+    contentType: {
+      type: String,
+      default: '',
+      trim: true,
+      maxlength: 50
     },
     title: {
       type: String,

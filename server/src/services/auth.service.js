@@ -4,6 +4,7 @@ import { appEnv } from '../config/env.js';
 import Session from '../models/Session.js';
 import User from '../models/User.js';
 import { AppError } from '../utils/appError.js';
+import * as notificationService from './notification.service.js';
 import {
   generateAccessToken,
   generateRefreshToken,
@@ -33,6 +34,30 @@ const buildRequestMeta = (req) => {
 
 const buildAuthUser = (user) => user.toAuthJSON();
 
+const buildUsername = (name, email) => {
+  return String(name || email?.split('@')[0] || 'user')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '.')
+    .replace(/^\.+|\.+$/g, '')
+    .slice(0, 24) || 'user';
+};
+
+const ensureUniqueUsername = async (preferredUsername) => {
+  const normalized = preferredUsername.toLowerCase();
+  const existing = await User.findOne({ username: normalized }).select('_id').lean();
+  if (!existing) return normalized;
+
+  for (let suffix = 2; suffix < 1000; suffix += 1) {
+    const candidate = `${normalized}.${suffix}`;
+    // eslint-disable-next-line no-await-in-loop
+    const candidateExists = await User.findOne({ username: candidate }).select('_id').lean();
+    if (!candidateExists) return candidate;
+  }
+
+  return `${normalized}.${Date.now().toString(36)}`;
+};
+
 const createSession = async ({ userId, userAgent, ipAddress }) => {
   return Session.create({
     user: userId,
@@ -51,25 +76,6 @@ const issueAuthPair = (user, sessionId) => {
     accessToken,
     refreshToken
   };
-};
-
-const sendVerificationEmail = async ({ user, token }) => {
-  return sendEmail({
-    to: user.email,
-    subject: 'Your Verification Code',
-    text: `Welcome to Pulse, ${user.name}. Your verification code is: ${token}`,
-    html: `
-      <div style="font-family:Arial,sans-serif;line-height:1.6;color:#0f172a">
-        <h2>Verify your email</h2>
-        <p>Hello ${user.name},</p>
-        <p>Thanks for joining Pulse. Please enter the following 6-digit code to verify your email address:</p>
-        <div style="display:inline-block;padding:12px 24px;border-radius:12px;background:#f8fafc;border:2px dashed #cbd5e1;font-size:24px;font-weight:700;letter-spacing:4px;color:#020617;margin:16px 0">
-          ${token}
-        </div>
-        <p>This code will expire in 24 hours.</p>
-      </div>
-    `
-  });
 };
 
 const sendPasswordResetEmail = async ({ user, token }) => {
@@ -99,22 +105,39 @@ export const registerAccount = async ({ name, email, password }, req) => {
     throw new AppError('An account with this email already exists.', 409);
   }
 
-  const verificationToken = generateVerificationToken();
-  const verificationTokenHash = hashToken(verificationToken);
-
   const user = await User.create({
     name,
     email: normalizedEmail,
+    username: await ensureUniqueUsername(buildUsername(name, normalizedEmail)),
     passwordHash: password,
-    emailVerificationTokenHash: verificationTokenHash,
-    emailVerificationExpiresAt: new Date(Date.now() + ONE_DAY)
+    isActive: false,
+    isEmailVerified: false,
+    emailVerificationTokenHash: null,
+    emailVerificationExpiresAt: null
   });
 
-  await sendVerificationEmail({ user, token: verificationToken });
+  const admins = await User.find({ role: 'admin', isActive: true }).select('_id').lean();
+  await Promise.all(
+    admins.map((admin) =>
+      notificationService.createNotification(
+        admin._id,
+        'system',
+        'New account request',
+        `${user.name} (${user.email}) is waiting for admin approval.`,
+        '/admin/users',
+        null,
+        {
+          senderName: user.name,
+          contentTitle: 'Account approval',
+          contentType: 'system'
+        }
+      )
+    )
+  );
 
   return {
     user: buildAuthUser(user),
-    verificationRequired: true
+    approvalRequired: true
   };
 };
 
@@ -164,6 +187,12 @@ export const loginAccount = async ({ email, password }, req) => {
   }
 
   if (!user.isActive) {
+    if (!user.isEmailVerified) {
+      throw new AppError('Your account is pending admin approval.', 403, {
+        approvalRequired: true
+      });
+    }
+
     throw new AppError('This account has been disabled.', 403);
   }
 

@@ -45,3 +45,57 @@ export const toggleUserAdmin = async (req, res, next) => {
     next(error);
   }
 };
+
+export const blockUser = async (req, res, next) => {
+  try {
+    const user = await adminService.blockUser(req.params.userId);
+    res.json({ success: true, data: user });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const unblockUser = async (req, res, next) => {
+  try {
+    const user = await adminService.unblockUser(req.params.userId);
+    res.json({ success: true, data: user });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const verifyUserEmail = async (req, res, next) => {
+  try {
+    const user = await adminService.verifyUserEmail(req.params.userId);
+    res.json({ success: true, data: user });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const suspendUserChat = async (req, res, next) => {
+  try {
+    const user = await adminService.suspendUserChat(req.params.userId, req.body);
+    res.json({ success: true, data: user, message: 'Chat disabled for this user.' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const restoreUserChat = async (req, res, next) => {
+  try {
+    const user = await adminService.restoreUserChat(req.params.userId);
+    res.json({ success: true, data: user, message: 'Chat enabled for this user.' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteUser = async (req, res, next) => {
+  try {
+    const result = await adminService.deleteUser(req.params.userId, req.user?._id);
+    res.status(200).json({ success: true, data: result });
+  } catch (error) {
+    next(error);
+  }
+};

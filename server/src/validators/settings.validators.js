@@ -7,5 +7,7 @@ export const updateSettingsSchema = z.object({
   contactEmail: z.string().trim().email('Invalid contact email address.').optional(),
   customFooterText: z.string().trim().max(500).optional(),
   allowRegistration: z.boolean().optional(),
+  allowTimelineDelete: z.boolean().optional(),
+  allowTimelineEdit: z.boolean().optional(),
   landingPageContent: z.record(z.any()).optional()
 });

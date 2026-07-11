@@ -39,6 +39,14 @@ const siteSettingsSchema = new Schema(
       type: Boolean,
       default: true
     },
+    allowTimelineDelete: {
+      type: Boolean,
+      default: false
+    },
+    allowTimelineEdit: {
+      type: Boolean,
+      default: false
+    },
     landingPageContent: {
       type: Schema.Types.Mixed,
       default: {}
@@ -59,6 +67,8 @@ siteSettingsSchema.methods.toSettingsJSON = function toSettingsJSON() {
     contactEmail: this.contactEmail,
     customFooterText: this.customFooterText,
     allowRegistration: this.allowRegistration,
+    allowTimelineDelete: this.allowTimelineDelete,
+    allowTimelineEdit: this.allowTimelineEdit,
     landingPageContent: this.landingPageContent || {},
     updatedAt: this.updatedAt
   };

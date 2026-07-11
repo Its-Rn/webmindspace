@@ -3,6 +3,7 @@ import User from '../models/User.js';
 const demoUsers = [
   {
     name: 'Kunal Admin',
+    username: 'kunal.admin',
     email: 'kunal@gmail.com',
     passwordHash: '2212Aryan@3',
     role: 'admin',
@@ -16,6 +17,7 @@ const demoUsers = [
   },
   {
     name: 'Aryan User',
+    username: 'aryan.user',
     email: 'aryan@gmail.com',
     passwordHash: '0902@Aryan3',
     role: 'user',

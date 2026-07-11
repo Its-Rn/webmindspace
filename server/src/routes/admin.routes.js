@@ -17,6 +17,12 @@ router.post('/users', validateRequest(createUserSchema), adminController.createU
 router.get('/users', adminController.getUsers);
 router.patch('/users/:userId/toggle-active', adminController.toggleUserActive);
 router.patch('/users/:userId/toggle-admin', adminController.toggleUserAdmin);
+router.patch('/users/:userId/block', adminController.blockUser);
+router.patch('/users/:userId/unblock', adminController.unblockUser);
+router.patch('/users/:userId/verify-email', adminController.verifyUserEmail);
+router.patch('/users/:userId/chat/suspend', adminController.suspendUserChat);
+router.patch('/users/:userId/chat/restore', adminController.restoreUserChat);
+router.delete('/users/:userId', adminController.deleteUser);
 router.patch('/settings', validateRequest(updateSettingsSchema), updateSettings);
 
 export default router;

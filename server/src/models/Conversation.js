@@ -25,6 +25,12 @@ const conversationSchema = new Schema(
       type: Boolean,
       default: false
     },
+    pinnedBy: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'User'
+      }
+    ],
     name: {
       type: String,
       default: '',

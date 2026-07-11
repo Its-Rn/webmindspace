@@ -19,6 +19,15 @@ const userSchema = new Schema(
       trim: true,
       lowercase: true
     },
+    username: {
+      type: String,
+      unique: true,
+      sparse: true,
+      trim: true,
+      lowercase: true,
+      maxlength: 40,
+      default: ''
+    },
     passwordHash: {
       type: String,
       required: true,
@@ -132,8 +141,22 @@ const userSchema = new Schema(
     },
     role: {
       type: String,
-      enum: ['user', 'admin'],
+      enum: ['guest', 'user', 'writer', 'moderator', 'admin'],
       default: 'user'
+    },
+    chatEnabled: {
+      type: Boolean,
+      default: true
+    },
+    chatSuspendedAt: {
+      type: Date,
+      default: null
+    },
+    chatSuspensionReason: {
+      type: String,
+      default: '',
+      trim: true,
+      maxlength: 250
     },
     isActive: {
       type: Boolean,
@@ -196,9 +219,11 @@ userSchema.methods.toAuthJSON = function toAuthJSON() {
   return {
     ...this.toProfileJSON(),
     email: this.email,
+    username: this.username,
     role: this.role,
     isActive: this.isActive,
     isEmailVerified: this.isEmailVerified,
+    chatEnabled: this.chatEnabled,
     emailVerifiedAt: this.emailVerifiedAt,
     lastLoginAt: this.lastLoginAt,
     createdAt: this.createdAt,
@@ -211,6 +236,7 @@ userSchema.methods.toProfileJSON = function toProfileJSON() {
     id: this._id.toString(),
     name: this.name,
     email: this.email,
+    username: this.username || this.email?.split('@')[0] || '',
     avatarUrl: this.avatarUrl,
     title: this.title,
     location: this.location,
@@ -222,6 +248,9 @@ userSchema.methods.toProfileJSON = function toProfileJSON() {
     role: this.role,
     isActive: this.isActive,
     isEmailVerified: this.isEmailVerified,
+    chatEnabled: this.chatEnabled,
+    chatSuspendedAt: this.chatSuspendedAt,
+    chatSuspensionReason: this.chatSuspensionReason,
     dailyStreak: this.dailyStreak,
     bestStreak: this.bestStreak,
     streakUpdatedAt: this.streakUpdatedAt,

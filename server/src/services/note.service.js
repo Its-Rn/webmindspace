@@ -28,6 +28,7 @@ export const getNotes = async (userId, options = {}) => {
   }
 
   const notes = await Note.find(filter)
+    .populate('author', 'name avatarUrl')
     .sort({ isPinned: -1, updatedAt: -1 })
     .limit(parseInt(limit))
     .lean();
@@ -36,7 +37,9 @@ export const getNotes = async (userId, options = {}) => {
 };
 
 export const getNote = async (noteId, userId) => {
-  const note = await Note.findOne({ _id: noteId, author: userId, isDeleted: false }).lean();
+  const note = await Note.findOne({ _id: noteId, author: userId, isDeleted: false })
+    .populate('author', 'name avatarUrl')
+    .lean();
   if (!note) {
     throw Object.assign(new Error('Note not found'), { statusCode: 404 });
   }

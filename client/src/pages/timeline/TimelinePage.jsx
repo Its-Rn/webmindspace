@@ -1,9 +1,10 @@
 import { useMemo, useRef, useState } from 'react';
-import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import {
   FiCalendar,
   FiClock,
+  FiEdit3,
   FiFilter,
   FiImage,
   FiMapPin,
@@ -15,6 +16,8 @@ import {
 } from 'react-icons/fi';
 
 import { timelineService } from '../../services/timeline';
+import { settingsService } from '../../services/settings';
+import { useAuthQuery } from '../../context/AuthContext';
 
 const formatFull = (date) => {
   const d = new Date(date);
@@ -69,7 +72,7 @@ const yearBadgeColors = [
   'bg-purple-100 text-purple-700 border-purple-300 dark:bg-purple-300/30 dark:text-purple-200',
 ];
 
-function TimelineItem({ item, index, onDelete }) {
+function TimelineItem({ item, index, canDelete, canEdit, onDelete, onEditStart }) {
   const isLeft = index % 2 === 0;
 
   return (
@@ -87,7 +90,7 @@ function TimelineItem({ item, index, onDelete }) {
           {item.year}
         </span>
         <div className="space-y-4">
-          {item.posts.map((post, pi) => (
+          {item.posts.map((post) => (
             <div
               key={post.id}
               className={`surface-card p-4 border-l-4 ${
@@ -103,14 +106,34 @@ function TimelineItem({ item, index, onDelete }) {
               <div className={`mt-3 flex items-center gap-3 ${isLeft ? 'md:justify-end' : ''}`}>
                 <span className="text-xs text-slate-400">{formatFull(post.createdAt)}</span>
                 {post.isPinned && <FiMapPin className="text-xs text-cyan-500" />}
-                <button
-                  type="button"
-                  onClick={() => onDelete(post.id)}
-                  className="text-xs text-slate-400 hover:text-red-500 transition-colors"
-                  title="Delete"
-                >
-                  <FiTrash2 className="text-xs" />
-                </button>
+                {canEdit && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (window.confirm('Are you sure you want to edit this post?')) {
+                        onEditStart(post);
+                      }
+                    }}
+                    className="text-xs text-slate-400 hover:text-purple-500 transition-colors"
+                    title="Edit"
+                  >
+                    <FiEdit3 className="text-xs" />
+                  </button>
+                )}
+                {canDelete && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (window.confirm('Are you sure you want to delete this post?')) {
+                        onDelete(post.id);
+                      }
+                    }}
+                    className="text-xs text-slate-400 hover:text-red-500 transition-colors"
+                    title="Delete"
+                  >
+                    <FiTrash2 className="text-xs" />
+                  </button>
+                )}
               </div>
             </div>
           ))}
@@ -135,6 +158,10 @@ for (let y = new Date().getFullYear(); y >= 2020; y--) {
 
 export const TimelinePage = () => {
   const queryClient = useQueryClient();
+  const currentUserQuery = useAuthQuery();
+  const currentUser = currentUserQuery.data?.data?.user;
+  const isAdmin = currentUser?.role === 'admin';
+
   const [newContent, setNewContent] = useState('');
   const [mediaUrl, setMediaUrl] = useState('');
   const [showMediaInput, setShowMediaInput] = useState(false);
@@ -146,6 +173,18 @@ export const TimelinePage = () => {
   const [filterStart, setFilterStart] = useState('');
   const [filterEnd, setFilterEnd] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [editingPost, setEditingPost] = useState(null);
+  const [editContent, setEditContent] = useState('');
+
+  const briefQuery = useQuery({
+    queryKey: ['site-settings-brief'],
+    queryFn: settingsService.getSettingsBrief,
+    staleTime: 0,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: 'always'
+  });
+  const canDelete = briefQuery.data?.data?.allowTimelineDelete === true;
+  const canEdit = briefQuery.data?.data?.allowTimelineEdit === true;
 
   const queryParams = useMemo(() => {
     const params = { page: 1, limit: 10 };
@@ -192,6 +231,16 @@ export const TimelinePage = () => {
     }
   });
 
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }) => timelineService.updatePost(id, data),
+    onSuccess: () => {
+      setEditingPost(null);
+      setEditContent('');
+      queryClient.invalidateQueries({ queryKey: ['timeline-posts'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+    }
+  });
+
   const posts = data?.pages?.flatMap((page) => page.data?.posts || []) || [];
   const allLoaded = !hasNextPage && posts.length > 0;
   const groups = groupByYear(posts);
@@ -205,6 +254,21 @@ export const TimelinePage = () => {
   };
 
   const hasFilters = search || filterYear || filterMonth || filterStart || filterEnd;
+
+  const handleEditStart = (post) => {
+    setEditingPost(post);
+    setEditContent(post.content);
+  };
+
+  const handleEditCancel = () => {
+    setEditingPost(null);
+    setEditContent('');
+  };
+
+  const handleEditSave = () => {
+    if (!editContent.trim()) return;
+    updateMutation.mutate({ id: editingPost.id, data: { content: editContent.trim() } });
+  };
 
   const handleSubmit = () => {
     const content = newContent.trim();
@@ -282,7 +346,7 @@ export const TimelinePage = () => {
         </div>
       </motion.section>
 
-      {/* Search & Filters */}
+      {/* Search & Filter toggle */}
       <div className="surface-card p-4 sm:p-5">
         <div className="flex items-center gap-3">
           <div className="relative flex-1">
@@ -386,7 +450,7 @@ export const TimelinePage = () => {
 
           <div className="relative space-y-16">
             {groups.map((item, index) => (
-              <TimelineItem key={item.year} item={item} index={index} onDelete={(id) => deleteMutation.mutate(id)} />
+              <TimelineItem key={item.year} item={item} index={index} canDelete={canDelete} canEdit={canEdit} onDelete={(id) => deleteMutation.mutate(id)} onEditStart={handleEditStart} />
             ))}
           </div>
 
@@ -407,6 +471,32 @@ export const TimelinePage = () => {
               </motion.p>
             ) : null}
           </div>
+        </div>
+      )}
+
+      {/* Edit modal */}
+      {editingPost && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={handleEditCancel}>
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="surface-card mx-4 w-full max-w-lg rounded-2xl p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="font-display text-lg font-semibold text-slate-950 dark:text-white mb-4">Edit Post</h3>
+            <textarea
+              value={editContent}
+              onChange={(e) => setEditContent(e.target.value)}
+              className="textarea w-full min-h-[100px]"
+              placeholder="Edit your post..."
+            />
+            <div className="mt-4 flex justify-end gap-3">
+              <button type="button" className="secondary-button" onClick={handleEditCancel}>Cancel</button>
+              <button type="button" className="primary-button" onClick={handleEditSave} disabled={updateMutation.isPending}>
+                {updateMutation.isPending ? 'Saving...' : 'Save'}
+              </button>
+            </div>
+          </motion.div>
         </div>
       )}
     </div>

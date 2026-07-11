@@ -11,6 +11,7 @@ import chatRoutes from './chat.routes.js';
 import notificationRoutes from './notification.routes.js';
 import noteRoutes from './note.routes.js';
 import adminRoutes from './admin.routes.js';
+import shareRoutes from './share.routes.js';
 
 const apiRouter = Router();
 
@@ -37,5 +38,6 @@ apiRouter.use('/chat', chatRoutes);
 apiRouter.use('/notifications', notificationRoutes);
 apiRouter.use('/notes', noteRoutes);
 apiRouter.use('/admin', adminRoutes);
+apiRouter.use('/share', shareRoutes);
 
 export default apiRouter;
