@@ -3,6 +3,11 @@ import { io } from 'socket.io-client';
 let socketInstance = null;
 const channelBindings = new Map();
 
+const getCookie = (name) => {
+  const match = document.cookie.match(new RegExp(`(?:^|; )${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}=([^;]*)`));
+  return match ? decodeURIComponent(match[1]) : null;
+};
+
 const getSocketUrl = () => {
   if (import.meta.env.VITE_SOCKET_URL) return import.meta.env.VITE_SOCKET_URL;
   if (import.meta.env.VITE_API_BASE_URL && /^https?:\/\//i.test(import.meta.env.VITE_API_BASE_URL)) {
@@ -18,21 +23,24 @@ const getSocketUrl = () => {
 
 const getSocketOptions = () => ({
   withCredentials: true,
-  transports: ['websocket', 'polling']
+  transports: ['websocket', 'polling'],
+  auth: { token: getCookie('ppp_access_token') },
+  autoConnect: true,
+  reconnection: true,
+  reconnectionAttempts: 10,
+  reconnectionDelay: 1000
 });
-
-const getChannelKey = (channelName, eventName) => `${channelName}:${eventName}`;
 
 const buildChannel = (socket, channelName) => ({
   bind(eventName, handler) {
-    const key = getChannelKey(channelName, eventName);
-    socket.on(key, handler);
-    channelBindings.set(`${key}:${handler}`, { key, handler });
+    const id = `${channelName}:${eventName}:${handler}`;
+    socket.on(eventName, handler);
+    channelBindings.set(id, { eventName, handler });
   },
   unbind(eventName, handler) {
-    const key = getChannelKey(channelName, eventName);
-    socket.off(key, handler);
-    channelBindings.delete(`${key}:${handler}`);
+    const id = `${channelName}:${eventName}:${handler}`;
+    socket.off(eventName, handler);
+    channelBindings.delete(id);
   },
   trigger(eventName, payload) {
     socket.emit('client-event', { channelName, eventName, payload });
@@ -40,9 +48,38 @@ const buildChannel = (socket, channelName) => ({
 });
 
 export const getSocket = () => {
-  if (socketInstance) return socketInstance;
+  if (socketInstance && socketInstance.connected) {
+    const token = getCookie('ppp_access_token');
+    if (token && socketInstance.auth) {
+      socketInstance.auth.token = token;
+    }
+    return socketInstance;
+  }
+
+  if (socketInstance) {
+    const token = getCookie('ppp_access_token');
+    if (token && socketInstance.auth) {
+      socketInstance.auth.token = token;
+    }
+    socketInstance.connect();
+    return socketInstance;
+  }
 
   const socket = io(getSocketUrl(), getSocketOptions());
+
+  socket.on('connect', () => {
+    const token = getCookie('ppp_access_token');
+    if (token && socket.auth) {
+      socket.auth.token = token;
+    }
+  });
+
+  socket.on('reconnect_attempt', () => {
+    const token = getCookie('ppp_access_token');
+    if (token && socket.auth) {
+      socket.auth.token = token;
+    }
+  });
 
   socket.subscribe = (channelName) => {
     socket.emit('subscribe', { channelName });
@@ -59,11 +96,18 @@ export const getSocket = () => {
 
 export const disconnectSocket = () => {
   if (socketInstance) {
-    for (const { key, handler } of channelBindings.values()) {
-      socketInstance.off(key, handler);
+    for (const { eventName, handler } of channelBindings.values()) {
+      socketInstance.off(eventName, handler);
     }
     channelBindings.clear();
     socketInstance.disconnect();
     socketInstance = null;
+  }
+};
+
+export const refreshSocketToken = () => {
+  const token = getCookie('ppp_access_token');
+  if (socketInstance && token) {
+    socketInstance.auth.token = token;
   }
 };

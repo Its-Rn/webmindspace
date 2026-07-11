@@ -6,6 +6,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useRef } from 'react';
 
 import { authService } from '../services/auth';
+import { refreshSocketToken } from '../services/socket';
 import { useToast } from '../context/ToastContext';
 
 export const LoginPage = () => {
@@ -28,6 +29,7 @@ export const LoginPage = () => {
     mutationFn: authService.login,
     onSuccess: async (response) => {
       queryClient.invalidateQueries({ queryKey: ['workspace-user'] });
+      refreshSocketToken();
       toast.success(response?.message || 'Signed in successfully.');
       const nextPath = location.state?.from?.pathname || '/dashboard';
       navigate(nextPath, { replace: true });
